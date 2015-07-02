@@ -21,12 +21,52 @@ dashboardPage(
             tabItem(tabName="app",
                 fluidRow(
                     column(width=8,
-                    box(status = "info", width = NULL,
-                        plotOutput("slider")
-                        )
+                           tabBox(
+                              # title = tagList(shiny::icon("gear"), "tabBox status"),
+                               # The id lets us use input$tabset1 on the server to find the current tab
+                               id = "tabset1",width=NULL,
+                        
+                          #  textOutput('callreactive'),
+            
+                                
+                                tabPanel('Plots',uiOutput('plots'),verbatimTextOutput('hover_info')),
+                                tabPanel('Numeric summary', uiOutput('tafla')),
+                                tabPanel('Plots2',  uiOutput('plots2')),
+                                tabPanel('Numeric summary 2', uiOutput('tafla2'))
+                           ),
+                          
+            
+                            tagList(
+                                tags$head(
+                                    tags$link(rel="stylesheet", type="text/css",href="style.css"),
+                                    tags$script(type="text/javascript", src = "busy.js")
+                                )
+                            ),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            br(),
+                            div(class = "busy",
+                                img(src="progress.GIF")
+                            )
+                        
+                        
                     ),
                     column(width=4,
-                        box(status = "info", width = NULL,
+                        box(status="primary", width = NULL,
+                            #background="light-blue",
                             title = "Controls",
                             selectInput("select", label = "Choose country", choices = list("Iceland" = 'Iceland'), 
                                         selected = 'Iceland'),
