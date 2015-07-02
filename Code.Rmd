@@ -1,22 +1,73 @@
----
-title: "Code"
-author: "Sölvi Rögnvaldsson and Axel Örn Jansson"
-date: "30 Jun 2015"
-output: html_document
----
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
+Code
+-----------------------
+   
+   
+    
 ```{r}
-summary(cars)
+library(ggplot2)
+library(RCmodels)
+setwd("~/Downloads")
+qvdata=read.table("V508.txt",skip=3,sep="|",dec=",")
+qvdata=qvdata[,c(2:4,7)]
+qvdata[,3:4]=qvdata[,4:3]
+names(qvdata)=c("Date","Time","W","Q")
+qvdata$Time=as.character(qvdata$Time)
+qvdata$Date=as.Date(gsub("\\.","-",qvdata$Date),"%d-%m-%Y")
+qvdata=qvdata[with(qvdata,order(W)),]
+wq=as.matrix(qvdata[,3:4])
+RC=priors("Iceland")
+                    
+RC$y=as.matrix(log(wq[,2]));
+RC$w=0.01*wq[,1]; #to meters 
+RC$w_tild=RC$w-min(RC$w);
+RC$n=length(RC$y);
+
+
+Dens <- function(th){ Densevalm11(th,RC)$pmin}
+Densmin=optim(par=c(0,0),Dens,hessian=TRUE)
+t_m=as.matrix(Densmin$par)
+H=Densmin$hessian
+
+
+l_m=as.matrix(log(RC$w_tild+exp(t_m[1,]))) 
+
+X_m=cbind(matrix(1,nrow(l_m),ncol(l_m)),l_m) 
+
+L=t(chol(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))) 
+
+mu=solve(t(L),(solve(L,(RC$Sinvmu+t(X_m)%*%RC$y/exp(t_m[2,])))))
+
+v_temp=X_m%*%solve(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))%*%t(X_m) 
+
+varappr=mean(as.matrix(diag(v_temp)+exp(t_m[2,])))
+
+RC$fit=X_m%*%mu
+
+RC$confinterval= cbind(X_m%*%mu+qnorm(0.025,0,sqrt(varappr)),X_m%*%mu+qnorm(0.975,0,sqrt(varappr))) 
+
+data=data.frame(W=RC$w,Q=RC$y)
+data$l_m=l_m
+data$fit=RC$fit
+simdata=data.frame(l_m=seq(min(data$l_m),max(data$l_m),length.out=1000))
+c_hat=min(data$W)-exp(t_m[1,]) 
+simdata$Wfit = exp(simdata$l_m)+c_hat
+simdata$fit=mu[1,]+mu[2,]*simdata$l_m
+data$upper=RC$confinterval[,2]
+data$lower=RC$confinterval[,1]
+simdata$upper=simdata$fit+qnorm(0.975,0,sqrt(varappr))
+simdata$lower=simdata$fit+qnorm(0.025,0,sqrt(varappr))
+                    
 ```
-
-You can also embed plots, for example:
-
+   
+   
+   
+Here is a rating curve based on Bayesian point estimates of the parameters in power law.
+   
+    
+  
 ```{r, echo=FALSE}
-plot(cars)
+rcraun=ggplot(simdata)+theme_bw()+geom_point(data=data,aes(exp(Q),W))+geom_line(aes(exp(fit),Wfit))+geom_line(aes(exp(lower),Wfit),linetype="dashed")+geom_line(aes(exp(upper),Wfit),linetype="dashed")+ggtitle(paste("Rating curve for","Eystri Ranga"))+ylab("W [m]")+ xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+theme(plot.title = element_text(vjust=2))
+rcraun
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

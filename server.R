@@ -1,6 +1,7 @@
 library(RCmodels)
 library(doParallel)
 library(Cairo)
+library(ggplot2)
 options(shiny.usecairo=T)
 suppressPackageStartupMessages(library(googleVis))
 

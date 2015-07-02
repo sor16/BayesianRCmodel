@@ -15,7 +15,7 @@ dashboardPage(
        
         tabItems(
             tabItem(tabName="instructions",
-                    h3("Instructions")
+                    includeMarkdown("instructions.md")
                     
                     ),
             tabItem(tabName="app",
@@ -29,7 +29,7 @@ dashboardPage(
                           #  textOutput('callreactive'),
             
                                 
-                                tabPanel('Plots',uiOutput('plots'),verbatimTextOutput('hover_info')),
+                                tabPanel('Plots',uiOutput('plots')),
                                 tabPanel('Numeric summary', uiOutput('tafla')),
                                 tabPanel('Plots2',  uiOutput('plots2')),
                                 tabPanel('Numeric summary 2', uiOutput('tafla2'))
@@ -88,11 +88,11 @@ dashboardPage(
             ),
             
             tabItem(tabName="theory",
-                    h3("Theory")
+                    includeMarkdown("Theory.md")
             ),
              #       includeHTML("Theory.html")),
             tabItem(tabName="code",
-                    h6("Code")
+                    includeMarkdown("Code.md")
             )
         )    
     )
