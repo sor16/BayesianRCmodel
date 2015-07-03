@@ -1,14 +1,7 @@
 library(shinydashboard)
 
 dashboardPage(
-    dashboardHeader(title='Bayesian Rating Curve',
-                    dropdownMenu(type = "notifications",
-                               
-                                 notificationItem(
-                                    text=""    
-                                 )
-                    )
-                    ),
+    dashboardHeader(title='Bayesian Rating Curve'),
     dashboardSidebar(
         sidebarMenu(
         menuItem("Instructions", tabName = "instructions", icon = icon("info-circle")),
@@ -31,7 +24,7 @@ dashboardPage(
                            tabBox(
                               # title = tagList(shiny::icon("gear"), "tabBox status"),
                                # The id lets us use input$tabset1 on the server to find the current tab
-                               id = "tabset1",width=NULL, height=680,
+                               id = "tabset1",width=NULL,
                         
                          
                                 
