@@ -6,7 +6,8 @@ Code
 ```{r}
 library(ggplot2)
 library(RCmodels)
-setwd("~/Downloads")
+library(Cairo)
+setwd("C:/Users/aoj8/Documents/Model1Git/BayesianRCmodel/www")
 qvdata=read.table("V508.txt",skip=3,sep="|",dec=",")
 qvdata=qvdata[,c(2:4,7)]
 qvdata[,3:4]=qvdata[,4:3]
@@ -65,7 +66,7 @@ Here is a rating curve based on Bayesian point estimates of the parameters in po
    
     
   
-```{r, echo=FALSE}
+````{r CairoPlot, dev='CairoPNG',echo=FALSE, fig.width=8, fig.height=6}
 rcraun=ggplot(simdata)+theme_bw()+geom_point(data=data,aes(exp(Q),W))+geom_line(aes(exp(fit),Wfit))+geom_line(aes(exp(lower),Wfit),linetype="dashed")+geom_line(aes(exp(upper),Wfit),linetype="dashed")+ggtitle(paste("Rating curve for","Eystri Ranga"))+ylab("W [m]")+ xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+theme(plot.title = element_text(vjust=2))
 rcraun
 ```

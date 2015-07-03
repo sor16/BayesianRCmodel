@@ -1,27 +1,71 @@
 Code
-----------------------
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
+-----------------------
+   
+   
+    
 
 ```r
-summary(cars)
-```
+library(ggplot2)
+library(RCmodels)
+library(Cairo)
+setwd("C:/Users/aoj8/Documents/Model1Git/BayesianRCmodel/www")
+qvdata=read.table("V508.txt",skip=3,sep="|",dec=",")
+qvdata=qvdata[,c(2:4,7)]
+qvdata[,3:4]=qvdata[,4:3]
+names(qvdata)=c("Date","Time","W","Q")
+qvdata$Time=as.character(qvdata$Time)
+qvdata$Date=as.Date(gsub("\\.","-",qvdata$Date),"%d-%m-%Y")
+qvdata=qvdata[with(qvdata,order(W)),]
+wq=as.matrix(qvdata[,3:4])
+RC=priors("Iceland")
+                    
+RC$y=as.matrix(log(wq[,2]));
+RC$w=0.01*wq[,1]; #to meters 
+RC$w_tild=RC$w-min(RC$w);
+RC$n=length(RC$y);
 
-```
-##      speed           dist       
-##  Min.   : 4.0   Min.   :  2.00  
-##  1st Qu.:12.0   1st Qu.: 26.00  
-##  Median :15.0   Median : 36.00  
-##  Mean   :15.4   Mean   : 42.98  
-##  3rd Qu.:19.0   3rd Qu.: 56.00  
-##  Max.   :25.0   Max.   :120.00
-```
 
-You can also embed plots, for example:
+Dens <- function(th){ Densevalm11(th,RC)$pmin}
+Densmin=optim(par=c(0,0),Dens,hessian=TRUE)
+t_m=as.matrix(Densmin$par)
+H=Densmin$hessian
 
-![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
+
+l_m=as.matrix(log(RC$w_tild+exp(t_m[1,]))) 
+
+X_m=cbind(matrix(1,nrow(l_m),ncol(l_m)),l_m) 
+
+L=t(chol(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))) 
+
+mu=solve(t(L),(solve(L,(RC$Sinvmu+t(X_m)%*%RC$y/exp(t_m[2,])))))
+
+v_temp=X_m%*%solve(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))%*%t(X_m) 
+
+varappr=mean(as.matrix(diag(v_temp)+exp(t_m[2,])))
+
+RC$fit=X_m%*%mu
+
+RC$confinterval= cbind(X_m%*%mu+qnorm(0.025,0,sqrt(varappr)),X_m%*%mu+qnorm(0.975,0,sqrt(varappr))) 
+
+data=data.frame(W=RC$w,Q=RC$y)
+data$l_m=l_m
+data$fit=RC$fit
+simdata=data.frame(l_m=seq(min(data$l_m),max(data$l_m),length.out=1000))
+c_hat=min(data$W)-exp(t_m[1,]) 
+simdata$Wfit = exp(simdata$l_m)+c_hat
+simdata$fit=mu[1,]+mu[2,]*simdata$l_m
+data$upper=RC$confinterval[,2]
+data$lower=RC$confinterval[,1]
+simdata$upper=simdata$fit+qnorm(0.975,0,sqrt(varappr))
+simdata$lower=simdata$fit+qnorm(0.025,0,sqrt(varappr))
+```
+   
+   
+   
+Here is a rating curve based on Bayesian point estimates of the parameters in power law.
+   
+    
+  
+![plot of chunk CairoPlot](figure/CairoPlot-1.png) 
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

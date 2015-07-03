@@ -1,7 +1,14 @@
 library(shinydashboard)
 
 dashboardPage(
-    dashboardHeader(title='Bayesian Rating Curve'),
+    dashboardHeader(title='Bayesian Rating Curve',
+                    dropdownMenu(type = "notifications",
+                               
+                                 notificationItem(
+                                    text=""    
+                                 )
+                    )
+                    ),
     dashboardSidebar(
         sidebarMenu(
         menuItem("Instructions", tabName = "instructions", icon = icon("info-circle")),
@@ -24,10 +31,9 @@ dashboardPage(
                            tabBox(
                               # title = tagList(shiny::icon("gear"), "tabBox status"),
                                # The id lets us use input$tabset1 on the server to find the current tab
-                               id = "tabset1",width=NULL,
+                               id = "tabset1",width=NULL, height=680,
                         
-                          #  textOutput('callreactive'),
-            
+                         
                                 
                                 tabPanel('Plots',uiOutput('plots')),
                                 tabPanel('Numeric summary', uiOutput('tafla')),
@@ -68,6 +74,8 @@ dashboardPage(
                         box(status="primary", width = NULL,
                             #background="light-blue",
                             title = "Controls",
+                             tags$a(href = 'V316.txt', class = "btn", icon("download"), 'Download test file'),
+                            br(),
                             selectInput("select", label = "Choose country", choices = list("Iceland" = 'Iceland'), 
                                         selected = 'Iceland'),
                             textInput("name","Name of river"),
