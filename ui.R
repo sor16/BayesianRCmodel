@@ -28,9 +28,9 @@ dashboardPage(
                         
                          
                                 
-                                tabPanel('Plots',uiOutput('plots')),
+                                tabPanel('Plots',uiOutput('plots1')),
                                 tabPanel('Numeric summary', uiOutput('tafla')),
-                                tabPanel('Plots2',  uiOutput('plots2')),
+                                tabPanel('Plots2',uiOutput('plots2'),plotOutput('Beta')),
                                 tabPanel('Numeric summary 2', uiOutput('tafla2'))
                            ),
                           
@@ -41,22 +41,7 @@ dashboardPage(
                                     tags$script(type="text/javascript", src = "busy.js")
                                 )
                             ),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
-                            br(),
+                            br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),br(),
                             div(class = "busy",
                                 img(src="progress.GIF")
                             )
@@ -77,8 +62,12 @@ dashboardPage(
                                                 choices=list("Real scale"="raun","Logarithmic scale"="log",
                                                 "Real scale residuals"="leifraun","Standardized residuals"="leiflog") ,selected = NULL),
                             checkboxInput("checkboxA", label="Advanced settings", value=FALSE),
-                            conditionalPanel(condition="input.checkboxA == true",   sliderInput("slider", label = "Date Range", min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
-                                                                                                value=c(1950,as.numeric(format(Sys.Date(), "%Y"))))),
+                            conditionalPanel(condition="input.checkboxA == true", 
+                                             sliderInput("slider", label = "Date Range", min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
+                                                        value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep=""),
+                                             textInput("Wmax",label="Maximum stage")
+                                                                                  
+                            ),
                             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
                             actionButton("go", label="Submit"),
                             br(),br(),br(),
