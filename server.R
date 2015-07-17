@@ -1,9 +1,12 @@
-library(RCmodels)
 suppressPackageStartupMessages(library(doParallel))
-library(Cairo)
-library(ggplot2)
-options(shiny.usecairo=T)
 suppressPackageStartupMessages(library(googleVis))
+library(RCmodels)
+library(ggplot2)
+library(xlsx)
+library(Cairo)
+options(shiny.usecairo=T)
+
+
 
 
 shinyServer(function(input, output) {
@@ -71,21 +74,35 @@ shinyServer(function(input, output) {
                     
                     RC$confinterval= cbind(X_m%*%mu+qnorm(0.025,0,sqrt(varappr)),X_m%*%mu+qnorm(0.975,0,sqrt(varappr))) 
                     
-                    data=data.frame(W=RC$w,Q=RC$y)
-                    data$l_m=l_m
-                    data$fit=RC$fit
-                    simdata=data.frame(l_m=seq(min(data$l_m),max(data$l_m),length.out=1000))
-                    c_hat=min(data$W)-exp(t_m[1,]) 
-                    simdata$Wfit = exp(simdata$l_m)+c_hat
+                    realdata=data.frame(W=RC$w,Q=RC$y)
+                    realdata$l_m=l_m
+                    realdata$fit=RC$fit
+                    realdata$upper=RC$confinterval[,2]
+                    realdata$lower=RC$confinterval[,1]
+                    c_hat=min(realdata$W)-exp(t_m[1,])
+                    Wmax=as.numeric(input$Wmax)
+                    if(is.na(Wmax)){
+                        Wmax=max(RC$w)
+                    }
+                    simdata=data.frame(W=seq(ceiling(c_hat*10)/10,ceiling(Wmax*10)/10,length.out=1000))
+                    simdata$l_m = log(simdata$W-c_hat)
                     simdata$fit=mu[1,]+mu[2,]*simdata$l_m
-                    data$upper=RC$confinterval[,2]
-                    data$lower=RC$confinterval[,1]
                     simdata$upper=simdata$fit+qnorm(0.975,0,sqrt(varappr))
                     simdata$lower=simdata$fit+qnorm(0.025,0,sqrt(varappr))
+                    realdata$residraun=(exp(realdata$Q)-exp(realdata$fit))
+                    realdata$residupper=exp(realdata$upper)-exp(realdata$fit)
+                    realdata$residlower=exp(realdata$lower)-exp(realdata$fit)
+                    realdata$residlog=(realdata$Q-realdata$fit)/sqrt(exp(t_m[2,]))
+                    xout=seq(ceiling(c_hat*10)/10,-0.01+ceiling(Wmax*10)/10,by=0.01)
+                    interpol=approx(simdata$W,simdata$fit,xout=xout)
+                    rctafla=t(as.data.frame(split(x=interpol$y, f=ceiling(seq_along(interpol$y)/10))))
+                    rownames(rctafla)=seq(min(interpol$x),max(interpol$x),by=0.1)*100
+                    colnames(rctafla)=0:9
                     
                     
                     
-                    return(list("RC"=RC,"varappr"=varappr,"t_m"=t_m,"qvdata"=qvdata,"simdata"=simdata,"data"=data,"mu"=mu))
+                    
+                    return(list("varappr"=varappr,"qvdata"=qvdata,"simdata"=simdata,"realdata"=realdata,"mu"=mu,"c_hat"=c_hat,"rcrafla"=rctafla))
                     
                 })
             }
@@ -103,18 +120,18 @@ shinyServer(function(input, output) {
         tafla=NULL
         outputlist=list()
         if(!is.null(plotlist$qvdata)) {
-            data=plotlist$data
+            realdata=plotlist$realdata
             simdata=plotlist$simdata
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=data,aes(exp(Q),W))+geom_line(aes(exp(fit),Wfit))+
-                    geom_line(aes(exp(lower),Wfit),linetype="dashed")+geom_line(aes(exp(upper),Wfit),linetype="dashed")+
+                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=realdata,aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
+                    geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges1$x, ylim = ranges1$y)
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
-                rclog=ggplot(simdata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(data=data,mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
+                rclog=ggplot(realdata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
                     geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
                     ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
                 
@@ -123,18 +140,15 @@ shinyServer(function(input, output) {
             
             
             if ("leifraun" %in% input$checkbox){
-                data$residraun=(exp(data$Q)-exp(data$fit))
-                simdata$residupper=exp(simdata$upper)-exp(simdata$fit)
-                simdata$residlower=exp(simdata$lower)-exp(simdata$fit)
-                rcleifraun=ggplot(simdata)+geom_point(data=data,aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_line(aes(Wfit,residupper),linetype="dashed")+geom_line(aes(Wfit,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
+                
+                rcleifraun=ggplot(realdata)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                    geom_line(aes(W,residupper),linetype="dashed")+geom_line(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
                     ggtitle("Residual plot")+xlab("W  [m]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
             } 
             if("leiflog" %in% input$checkbox){
-                data$residlog=(data$Q-data$fit)/sqrt(exp(plotlist$t_m[2,]))
-                rcleiflog=ggplot(data)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
                     ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
@@ -143,22 +157,24 @@ shinyServer(function(input, output) {
                 outputlist$rcleiflog=rcleiflog
             }
             
-            tafla=plotlist$qvdata
-            tafla$W=0.01*tafla$W
-            tafla$Q=tafla$Q
-            tafla$Qfit=as.numeric(format(round(as.vector(exp(data$fit)),3)))
-            tafla$lower=as.numeric(format(round(exp(data$lower),3)))
-            tafla$upper=as.numeric(format(round(exp(data$upper),3)))
-            tafla$diffQ=tafla$Q-tafla$Qfit
-            names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
-            tafla=tafla[with(tafla,order(Date)),]
+             tafla=plotlist$qvdata
+             tafla$W=0.01*tafla$W
+             tafla$Q=round(tafla$Q,1)
+             tafla$Qfit=round(exp(realdata$fit),3)
+             tafla$lower=round(exp(realdata$lower),3)
+             tafla$upper=round(exp(realdata$upper),3)
+             tafla$diffQ=tafla$Q-tafla$Qfit
+             names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
+             tafla=tafla[with(tafla,order(Date)),]
             outputlist$tafla=tafla
             
+            outputlist$rctafla=plotlist$rctafla
             
-            return(outputlist)
+            
+            
         }
+        return(outputlist)
     })
-    
     model2 <- eventReactive(input$go,{
         if("mdl2" %in% input$checkbox2){
             if(!is.null(data())){
@@ -223,7 +239,11 @@ shinyServer(function(input, output) {
                     
                     cl <- makeCluster(4)
                     registerDoParallel(cl)
-                    WFill=W_unobserved(RC$O,min=ceiling((min(RC$O)-exp(t_m[1]))*10)/10,max=ceiling(max(RC$O)*10)/10)
+                    Wmax=as.numeric(input$Wmax)
+                    if(is.na(Wmax)){
+                        Wmax=ceiling(max(RC$O)*10)/10
+                    }
+                    WFill=W_unobserved(RC$O,min=ceiling((min(RC$O)-exp(t_m[1]))*10)/10,max=Wmax)
                     RC$W_u=WFill$W_u
                     RC$W_u_tild=WFill$W_u_tild
                     RC$Bsim=B_splines(t(RC$W_u_tild)/RC$W_u_tild[length(RC$W_u_tild)])
@@ -270,7 +290,7 @@ shinyServer(function(input, output) {
                     ypodata=as.data.frame(t(apply(yposamples,1,quantile, probs = c(0.025,0.5, 0.975),na.rm=T)))
                     names(ypodata)=c("lower","fit","upper")
                     ypodata$W=c(RC$w,RC$W_u)
-                    ypodata$l_m=c(l,log(RC$W_u)-min(RC$O)+exp(t_m[1]))
+                    ypodata$l_m=c(l,log(RC$W_u-min(RC$O)+exp(t_m[1])))
                     realdata=ypodata[1:RC$N,]
                     ypodata=ypodata[with(ypodata,order(W)),]
                     betadata=as.data.frame(t(apply(betasamples,1,quantile, probs = c(0.025,0.5, 0.975),na.rm=T)))
@@ -297,7 +317,6 @@ shinyServer(function(input, output) {
         tafla=NULL
         outputlist=list()
         if(!is.null(plotlist$qvdata)) {
-            #list2env(plotlist, envir=environment())
             ypodata=plotlist$ypodata
             betadata=plotlist$betadata
             realdata=plotlist$realdata
@@ -310,7 +329,7 @@ shinyServer(function(input, output) {
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
-                rclog=ggplot(ypodata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(data=realdata,mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
+                rclog=ggplot(realdata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
                     geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
                     ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
                 
@@ -342,10 +361,10 @@ shinyServer(function(input, output) {
             
             tafla=plotlist$qvdata
             tafla$W=0.01*tafla$W
-            tafla$Q=as.numeric(format(round(tafla$Q,1)))
-            tafla$Qfit=as.numeric(format(round(as.vector(exp(realdata$fit)),3)))
-            tafla$lower=as.numeric(format(round(exp(realdata$lower),3)))
-            tafla$upper=as.numeric(format(round(exp(realdata$upper),3)))
+            tafla$Q=round(tafla$Q,1)
+            tafla$Qfit=round(exp(realdata$fit),3)
+            tafla$lower=round(exp(realdata$lower),3)
+            tafla$upper=round(exp(realdata$upper),3)
             tafla$diffQ=tafla$Q-tafla$Qfit
             names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
             tafla=tafla[with(tafla,order(Date)),]
@@ -374,20 +393,6 @@ shinyServer(function(input, output) {
         }
     })
     
-    # When a double-click happens, check if there's a brush on the plot.
-    # If so, zoom to the brush bounds; if not, reset the zoom.
-    observeEvent(input$plot1_dblclick, {
-        brush <- input$plot1_brush
-        if (!is.null(brush)) {
-            ranges1$x <- c(brush$xmin, brush$xmax)
-            ranges1$y <- c(brush$ymin, brush$ymax)
-            
-        } else {
-            ranges1$x <- NULL
-            ranges1$y <- NULL
-        }
-    })
-    
     
     output$plot1<-renderPlot({
         if(length(plotratingcurve1())!=0)
@@ -405,24 +410,28 @@ shinyServer(function(input, output) {
         if(length(plotratingcurve1())>=4)
             plotratingcurve1()[[4]]     
     },height=400,width=600)
-    output$tafla <- renderGvis({
-        #if(!is.null(plotratingcurve1()$tafla)){
-        table=as.data.frame(plotratingcurve1()$tafla)
-        gvisTable(table,options=list(
+    output$tafla1 <- renderGvis({
+            table=plotratingcurve1()$tafla
+            gvisTable(table,options=list(
+                page='enable',
+                pageSize=30,
+                width=550
+            ))
+        
+    })
+    output$rctafla1 <- renderGvis({
+        rctafla1=as.data.frame(plotratingcurve1()$rctafla)
+        gvisTable(rctafla1,options=list(
             page='enable',
             pageSize=30,
             width=550
         ))
+        
+        
     })
-    
-    
-    
-    
-    #Model2
-    
     output$plots2 <- renderUI({
         if(length(plotratingcurve2())!=0){
-            plot_output_list <- lapply(1:(length(plotratingcurve2())-1), function(i) {
+            plot_output_list <- lapply(1:(length(plotratingcurve2())-2), function(i) {
                 plotname=paste("plot", 4+i, sep="")
                 clickname=paste("plot",4+i,"_click",sep="")
                 dblclickname=paste("plot",4+i,"_dblclick",sep="")
@@ -430,22 +439,14 @@ shinyServer(function(input, output) {
                 plotOutput(plotname,click =clickname,dblclick = dblclickOpts(
                     id = dblclickname),brush = brushOpts(id = brushname,resetOnNew = TRUE))
             })
+            plot_output_list$Beta=plotOutput('Beta',click ='Beta_click',dblclick = dblclickOpts(
+                id = 'Beta_dblclick'),brush = brushOpts(id = 'Beta_brush',resetOnNew = TRUE))
             
             do.call(tagList, plot_output_list)
         }
     })
     
-    observeEvent(input$plot5_dblclick, {
-        brush <- input$plot5_brush
-        if (!is.null(brush)) {
-            ranges2$x <- c(brush$xmin, brush$xmax)
-            ranges2$y <- c(brush$ymin, brush$ymax)
-            
-        } else {
-            ranges2$x <- NULL
-            ranges2$y <- NULL
-        }
-    })
+
     
     output$plot5<-renderPlot({
         if(length(plotratingcurve2())!=0)
@@ -467,24 +468,71 @@ shinyServer(function(input, output) {
     },height=400,width=600)
     
     output$Beta <- renderPlot({
-        plotratingcurve2()$smoothbeta
-    })
+        if(!is.null(plotratingcurve2()))
+            plotratingcurve2()$smoothbeta
+    },height=400,width=600)
     
     output$tafla2 <- renderGvis({
-        table=as.data.frame(plotratingcurve2()$tafla)
-        gvisTable(table,options=list(
-            page='enable',
-            pageSize=30,
-            width=550
-        ))
+        if(!is.null(plotratingcurve2())){
+            table=plotratingcurve2()$tafla
+            gvisTable(table,options=list(
+                page='enable',
+                pageSize=30,
+                width=550
+            ))
+        }
         
         
     })
+    
+    #######Interactivity#######
+    
+    # If so, zoom to the brush bounds; if not, reset the zoom.
+    observeEvent(input$plot1_dblclick, {
+        brush <- input$plot1_brush
+        if (!is.null(brush)) {
+            ranges1$x <- c(brush$xmin, brush$xmax)
+            ranges1$y <- c(brush$ymin, brush$ymax)
+            
+        } else {
+            ranges1$x <- NULL
+            ranges1$y <- NULL
+        }
+    })
+    
+    observeEvent(input$plot5_dblclick, {
+        brush <- input$plot5_brush
+        if (!is.null(brush)) {
+            ranges2$x <- c(brush$xmin, brush$xmax)
+            ranges2$y <- c(brush$ymin, brush$ymax)
+            
+        } else {
+            ranges2$x <- NULL
+            ranges2$y <- NULL
+        }
+    })
+    
+    observeEvent(input$data1, {
+        data1=plotratingcurve1()$tafla
+        write.xlsx(data1,paste(input$name,"xlsx",sep="."),sheetName="data1",append=TRUE)
+    })
+    observeEvent(input$data2, {
+        data2=plotratingcurve2()$tafla
+        write.xlsx(data2,paste(input$name,"xlsx",sep="."),sheetName="data2",append=TRUE)
+    })
+#     observeEvent(input$fullrc1, {
+#         fullrc1=plotratingcurve1()$rctafla
+#         write.xlsx(fullrc1,paste(input$name,"xlsx",sep="."),sheetName="fullrc1",append=TRUE)
+#     })
+    #observeEvent(input$fullrc2, {
+    #    fullrc2=plotratingcurve2()$tafla
+    #    write.xlsx(fullrc2,paste(input$name,"xlsx",sep="."),sheetName="fullrc2",append=TRUE)
+    #})
     
     output$downloadReport <- downloadHandler(
         filename = function() {
             filename=gsub("\\.[^.]*$","",input$file1$name)
-            paste(filename, sep=".",'pdf')
+            paste(filename,'pdf', sep=".")
         },
         content <- function(file) {
             src <- normalizePath('myreport.Rmd')
@@ -505,7 +553,4 @@ shinyServer(function(input, output) {
     
     
 })
-
-
-
 

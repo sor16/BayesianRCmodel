@@ -15,7 +15,7 @@ library(stargazer,quietly=TRUE)
 plotlist=model1()
 a=exp(plotlist$mu[1,])
 b=plotlist$mu[2,]
-c_hat=min(plotlist$RC$w)-exp(plotlist$t_m[1,])
+c_hat=plotlist$c_hat
 varappr=mean(plotlist$varappr)
 predict=1.96*sqrt(varappr)
 ```

@@ -1,4 +1,4 @@
-library(shinydashboard)
+suppressPackageStartupMessages(library(shinydashboard))
 
 dashboardPage(
     dashboardHeader(title='Bayesian Rating Curve'),
@@ -22,17 +22,23 @@ dashboardPage(
                 fluidRow(
                     column(width=8,
                            tabBox(
-                              # title = tagList(shiny::icon("gear"), "tabBox status"),
-                               # The id lets us use input$tabset1 on the server to find the current tab
                                id = "tabset1",width=NULL,
-                        
-                         
-                                
                                 tabPanel('Plots',uiOutput('plots1')),
-                                tabPanel('Numeric summary', uiOutput('tafla')),
-                                tabPanel('Plots2',uiOutput('plots2'),plotOutput('Beta')),
-                                tabPanel('Numeric summary 2', uiOutput('tafla2'))
-                           ),
+                                tabPanel('Numeric summary', 
+                                         uiOutput('tafla1'),
+                                         actionButton("data1",label="Export table to xlsx"),
+                                         uiOutput('rctafla'),
+                                        actionButton("fullrc1",label="Export table to xlsx")
+                                ),
+                                tabPanel('Plots2',uiOutput('plots2')),
+                                tabPanel('Numeric summary 2',
+                                         uiOutput('tafla2'),
+                                         actionButton("data1",label="Export table to xlsx"),
+                                         uiOutput('rctafla2'),
+                                         actionButton('fullrc2',label="Export table to xlsx")
+                                         
+                                )
+                            ),
                           
             
                             tagList(
