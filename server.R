@@ -93,16 +93,30 @@ shinyServer(function(input, output) {
                     realdata$residupper=exp(realdata$upper)-exp(realdata$fit)
                     realdata$residlower=exp(realdata$lower)-exp(realdata$fit)
                     realdata$residlog=(realdata$Q-realdata$fit)/sqrt(exp(t_m[2,]))
+                    
+                    tafla=qvdata
+                    tafla$W=0.01*tafla$W
+                    tafla$Q=round(tafla$Q,1)
+                    tafla$Qfit=as.numeric(round(exp(realdata$fit),3))
+                    tafla$lower=round(exp(realdata$lower),3)
+                    tafla$upper=round(exp(realdata$upper),3)
+                    tafla$diffQ=tafla$Q-tafla$Qfit
+                    names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
+                    tafla=tafla[with(tafla,order(Date)),]
+                    
                     xout=seq(ceiling(c_hat*10)/10,-0.01+ceiling(Wmax*10)/10,by=0.01)
                     interpol=approx(simdata$W,simdata$fit,xout=xout)
                     rctafla=t(as.data.frame(split(x=interpol$y, f=ceiling(seq_along(interpol$y)/10))))
-                    rownames(rctafla)=seq(min(interpol$x),max(interpol$x),by=0.1)*100
+                    rownames(rctafla)=seq(min(interpol$x),floor(max(interpol$x)*10)/10,by=0.1)*100
                     colnames(rctafla)=0:9
+                    rctafla=round(exp(rctafla),3)
                     
                     
                     
                     
-                    return(list("varappr"=varappr,"qvdata"=qvdata,"simdata"=simdata,"realdata"=realdata,"mu"=mu,"c_hat"=c_hat,"rcrafla"=rctafla))
+                    
+                    return(list("varappr"=varappr,"qvdata"=qvdata,"simdata"=simdata,"realdata"=realdata,
+                                "tafla"=tafla,"mu"=mu,"c_hat"=c_hat,"rctafla"=rctafla))
                     
                 })
             }
@@ -118,6 +132,7 @@ shinyServer(function(input, output) {
         rcleiflog=NULL
         rcleifraun=NULL
         tafla=NULL
+        rctafla=NULL
         outputlist=list()
         if(!is.null(plotlist$qvdata)) {
             realdata=plotlist$realdata
@@ -156,23 +171,12 @@ shinyServer(function(input, output) {
                 
                 outputlist$rcleiflog=rcleiflog
             }
-            
-             tafla=plotlist$qvdata
-             tafla$W=0.01*tafla$W
-             tafla$Q=round(tafla$Q,1)
-             tafla$Qfit=round(exp(realdata$fit),3)
-             tafla$lower=round(exp(realdata$lower),3)
-             tafla$upper=round(exp(realdata$upper),3)
-             tafla$diffQ=tafla$Q-tafla$Qfit
-             names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
-             tafla=tafla[with(tafla,order(Date)),]
-            outputlist$tafla=tafla
-            
-            outputlist$rctafla=plotlist$rctafla
-            
+#             outputlist$tafla=tafla
+#             outputlist$rctafla=plotlist$rctafla
             
             
         }
+        
         return(outputlist)
     })
     model2 <- eventReactive(input$go,{
@@ -302,7 +306,23 @@ shinyServer(function(input, output) {
                     realdata$residupper=exp(realdata$upper)-exp(realdata$fit)
                     realdata$residlower=exp(realdata$lower)-exp(realdata$fit)
                     realdata$residlog=(realdata$Q-realdata$fit)/sqrt(varr_m)
-                    return(list("qvdata"=qvdata,"betadata"=betadata,"ypodata"=ypodata,"realdata"=realdata))
+                    
+                    tafla=qvdata
+                    tafla$W=0.01*tafla$W
+                    tafla$Q=round(tafla$Q,1)
+                    tafla$Qfit=round(exp(realdata$fit),3)
+                    tafla$lower=round(exp(realdata$lower),3)
+                    tafla$upper=round(exp(realdata$upper),3)
+                    tafla$diffQ=tafla$Q-tafla$Qfit
+                    names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
+                    tafla=tafla[with(tafla,order(Date)),]
+                    xout=seq(ceiling((min(RC$w)-exp(t_m[1]))*10)/10,-0.01+ceiling(max(RC$O)*10)/10,by=0.01)
+                    interpol=approx(ypodata$W,ypodata$fit,xout=xout)
+                        rctafla=t(as.data.frame(split(x=interpol$y, f=ceiling(seq_along(interpol$y)/10))))
+                        rownames(rctafla)=seq(min(interpol$x),floor(max(interpol$x)*10)/10,by=0.1)*100
+                        colnames(rctafla)=0:9
+                        rctafla=round(exp(rctafla),3)
+                    return(list("qvdata"=qvdata,"betadata"=betadata,"ypodata"=ypodata,"realdata"=realdata,"tafla"=tafla,"rctafla"=rctafla))
                 })
             }
         }
@@ -355,20 +375,9 @@ shinyServer(function(input, output) {
             }
             smoothbeta=ggplot(data=betadata)+geom_line(aes(W,fit))+
                 geom_line(aes(W,lower),linetype="dashed")+geom_line(aes(W,upper),linetype="dashed")+
-                ylab(expression(b+beta(W)))+ggtitle("B parameter")+xlab("W [m]")+
+                ylab(expression(b+beta(W)))+ggtitle("b parameter as a function of stage W")+xlab("W [m]")+
                 theme(plot.title = element_text(vjust=2))+theme_bw()
                 outputlist$smoothbeta=smoothbeta
-            
-            tafla=plotlist$qvdata
-            tafla$W=0.01*tafla$W
-            tafla$Q=round(tafla$Q,1)
-            tafla$Qfit=round(exp(realdata$fit),3)
-            tafla$lower=round(exp(realdata$lower),3)
-            tafla$upper=round(exp(realdata$upper),3)
-            tafla$diffQ=tafla$Q-tafla$Qfit
-            names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
-            tafla=tafla[with(tafla,order(Date)),]
-            outputlist$tafla=tafla
             
             
             return(outputlist)
@@ -411,22 +420,28 @@ shinyServer(function(input, output) {
             plotratingcurve1()[[4]]     
     },height=400,width=600)
     output$tafla1 <- renderGvis({
-            table=plotratingcurve1()$tafla
+        if(!is.null(model1())){
+            table=model1()$tafla
             gvisTable(table,options=list(
+                                page='enable',
+                                pageSize=30,
+                                width=550
+                            ))
+        }
+        
+    })
+    output$hakk <- renderPrint({
+        lapply(model2()$tafla,class)
+    })
+    output$rctafla1 <- renderGvis({
+        if(!is.null(model1())){
+            rctafla1=as.data.frame(model1()$rctafla)
+            gvisTable(rctafla1,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
             ))
-        
-    })
-    output$rctafla1 <- renderGvis({
-        rctafla1=as.data.frame(plotratingcurve1()$rctafla)
-        gvisTable(rctafla1,options=list(
-            page='enable',
-            pageSize=30,
-            width=550
-        ))
-        
+        }
         
     })
     output$plots2 <- renderUI({
@@ -473,8 +488,8 @@ shinyServer(function(input, output) {
     },height=400,width=600)
     
     output$tafla2 <- renderGvis({
-        if(!is.null(plotratingcurve2())){
-            table=plotratingcurve2()$tafla
+        if(!is.null(model2())){
+            table=as.data.frame(model2()$tafla)
             gvisTable(table,options=list(
                 page='enable',
                 pageSize=30,
@@ -483,6 +498,17 @@ shinyServer(function(input, output) {
         }
         
         
+    })
+    output$rctafla2 <- renderGvis({
+        if(!is.null(model2())){
+            rctafla2=as.data.frame(model2()$rctafla)
+            gvisTable(rctafla2,options=list(
+                page='enable',
+                pageSize=30,
+                width=550
+            ))
+        
+        } 
     })
     
     #######Interactivity#######
@@ -513,21 +539,21 @@ shinyServer(function(input, output) {
     })
     
     observeEvent(input$data1, {
-        data1=plotratingcurve1()$tafla
-        write.xlsx(data1,paste(input$name,"xlsx",sep="."),sheetName="data1",append=TRUE)
+        data1=model1()$tafla
+        write.xlsx(data1,paste(input$name,"xlsx",sep="."),sheetName="data1",append=TRUE,overwrite=TRUE)
     })
     observeEvent(input$data2, {
-        data2=plotratingcurve2()$tafla
-        write.xlsx(data2,paste(input$name,"xlsx",sep="."),sheetName="data2",append=TRUE)
+        data2=model2()$tafla
+        write.xlsx(data2,paste(input$name,"xlsx",sep="."),sheetName="data2",append=TRUE,overwrite=TRUE)
     })
-#     observeEvent(input$fullrc1, {
-#         fullrc1=plotratingcurve1()$rctafla
-#         write.xlsx(fullrc1,paste(input$name,"xlsx",sep="."),sheetName="fullrc1",append=TRUE)
-#     })
-    #observeEvent(input$fullrc2, {
-    #    fullrc2=plotratingcurve2()$tafla
-    #    write.xlsx(fullrc2,paste(input$name,"xlsx",sep="."),sheetName="fullrc2",append=TRUE)
-    #})
+     observeEvent(input$fullrc1, {
+         fullrc1=model1()$rctafla
+         write.xlsx(fullrc1,paste(input$name,"xlsx",sep="."),sheetName="fullrc1",append=TRUE,overwrite=TRUE)
+     })
+    observeEvent(input$fullrc2, {
+       fullrc2=model2()$rctafla
+       write.xlsx(fullrc2,paste(input$name,"xlsx",sep="."),sheetName="fullrc2",append=TRUE,overwrite=TRUE)
+    })
     
     output$downloadReport <- downloadHandler(
         filename = function() {

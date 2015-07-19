@@ -1,5 +1,5 @@
 suppressPackageStartupMessages(library(shinydashboard))
-
+suppressPackageStartupMessages(library(googleVis))
 dashboardPage(
     dashboardHeader(title='Bayesian Rating Curve'),
     dashboardSidebar(
@@ -25,16 +25,17 @@ dashboardPage(
                                id = "tabset1",width=NULL,
                                 tabPanel('Plots',uiOutput('plots1')),
                                 tabPanel('Numeric summary', 
-                                         uiOutput('tafla1'),
+                                         htmlOutput('tafla1'),
                                          actionButton("data1",label="Export table to xlsx"),
-                                         uiOutput('rctafla'),
+                                         htmlOutput('rctafla1'),
+                                         textOutput("hakk"),
                                         actionButton("fullrc1",label="Export table to xlsx")
                                 ),
                                 tabPanel('Plots2',uiOutput('plots2')),
                                 tabPanel('Numeric summary 2',
-                                         uiOutput('tafla2'),
+                                         htmlOutput('tafla2'),
                                          actionButton("data1",label="Export table to xlsx"),
-                                         uiOutput('rctafla2'),
+                                         htmlOutput('rctafla2'),
                                          actionButton('fullrc2',label="Export table to xlsx")
                                          
                                 )
