@@ -26,17 +26,13 @@ dashboardPage(
                                 tabPanel('Plots',uiOutput('plots1')),
                                 tabPanel('Numeric summary', 
                                          htmlOutput('tafla1'),
-                                         actionButton("data1",label="Export table to xlsx"),
                                          htmlOutput('rctafla1'),
-                                         textOutput("hakk"),
-                                        actionButton("fullrc1",label="Export table to xlsx")
+                                         textOutput("hakk")
                                 ),
                                 tabPanel('Plots2',uiOutput('plots2')),
                                 tabPanel('Numeric summary 2',
                                          htmlOutput('tafla2'),
-                                         actionButton("data1",label="Export table to xlsx"),
-                                         htmlOutput('rctafla2'),
-                                         actionButton('fullrc2',label="Export table to xlsx")
+                                         htmlOutput('rctafla2')
                                          
                                 )
                             ),
@@ -78,7 +74,9 @@ dashboardPage(
                             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
                             actionButton("go", label="Submit"),
                             br(),br(),br(),
-                            downloadButton('downloadReport',label="Download as PDF")
+                            downloadButton('downloadReport',label="Download as PDF"),
+                            br(),br(),br(),
+                            actionButton('xlsxexport',label='Export tables to xlsx')
                         )
                     )
                 )

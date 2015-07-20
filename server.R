@@ -107,13 +107,10 @@ shinyServer(function(input, output) {
                     xout=seq(ceiling(c_hat*10)/10,-0.01+ceiling(Wmax*10)/10,by=0.01)
                     interpol=approx(simdata$W,simdata$fit,xout=xout)
                     rctafla=t(as.data.frame(split(x=interpol$y, f=ceiling(seq_along(interpol$y)/10))))
-                    rownames(rctafla)=seq(min(interpol$x),floor(max(interpol$x)*10)/10,by=0.1)*100
                     colnames(rctafla)=0:9
                     rctafla=round(exp(rctafla),3)
-                    
-                    
-                    
-                    
+                    Stage=seq(min(interpol$x),max(interpol$x),by=0.1)*100
+                    rctafla=cbind(Stage,rctafla)
                     
                     return(list("varappr"=varappr,"qvdata"=qvdata,"simdata"=simdata,"realdata"=realdata,
                                 "tafla"=tafla,"mu"=mu,"c_hat"=c_hat,"rctafla"=rctafla))
@@ -319,9 +316,10 @@ shinyServer(function(input, output) {
                     xout=seq(ceiling((min(RC$w)-exp(t_m[1]))*10)/10,-0.01+ceiling(max(RC$O)*10)/10,by=0.01)
                     interpol=approx(ypodata$W,ypodata$fit,xout=xout)
                         rctafla=t(as.data.frame(split(x=interpol$y, f=ceiling(seq_along(interpol$y)/10))))
-                        rownames(rctafla)=seq(min(interpol$x),floor(max(interpol$x)*10)/10,by=0.1)*100
                         colnames(rctafla)=0:9
                         rctafla=round(exp(rctafla),3)
+                        Stage=seq(min(interpol$x),max(interpol$x),by=0.1)*100
+                        rctafla=cbind(Stage,rctafla)
                     return(list("qvdata"=qvdata,"betadata"=betadata,"ypodata"=ypodata,"realdata"=realdata,"tafla"=tafla,"rctafla"=rctafla))
                 })
             }
@@ -431,7 +429,7 @@ shinyServer(function(input, output) {
         
     })
     output$hakk <- renderPrint({
-        lapply(model2()$tafla,class)
+        input$file1
     })
     output$rctafla1 <- renderGvis({
         if(!is.null(model1())){
@@ -538,23 +536,29 @@ shinyServer(function(input, output) {
         }
     })
     
-    observeEvent(input$data1, {
-        data1=model1()$tafla
-        write.xlsx(data1,paste(input$name,"xlsx",sep="."),sheetName="data1",append=TRUE,overwrite=TRUE)
+    observeEvent(input$xlsxexport, {
+        name=input$name
+        if(nchar(name)==0){
+            name="River1"
+        }
+        wb <- createWorkbook()
+        saveWorkbook(wb, paste(name,'xlsx',sep="."))
+        tablelist=list()
+        if(!is.null(model1())){
+            tablelist$data1=model1()$tafla
+            tablelist$fullrc1=model1()$rctafla
+        }
+        if(!is.null(model2())){
+            tablelist$data2=model2()$tafla
+            tablelist$fullrc2=model2()$rctafla
+        }
+        lapply(names(tablelist),function(x) write.xlsx(tablelist[[x]],paste(name,"xlsx",sep="."),sheetName=x,append=TRUE,row.names=FALSE))
+        
+#         write.xlsx(data2,paste(input$name,"xlsx",sep="."),sheetName="data2",append=TRUE)
+#         write.xlsx(fullrc1,paste(input$name,"xlsx",sep="."),sheetName="fullrc1",append=TRUE)
+#         write.xlsx(fullrc2,paste(input$name,"xlsx",sep="."),sheetName="fullrc2",append=TRUE)
+#  
     })
-    observeEvent(input$data2, {
-        data2=model2()$tafla
-        write.xlsx(data2,paste(input$name,"xlsx",sep="."),sheetName="data2",append=TRUE,overwrite=TRUE)
-    })
-     observeEvent(input$fullrc1, {
-         fullrc1=model1()$rctafla
-         write.xlsx(fullrc1,paste(input$name,"xlsx",sep="."),sheetName="fullrc1",append=TRUE,overwrite=TRUE)
-     })
-    observeEvent(input$fullrc2, {
-       fullrc2=model2()$rctafla
-       write.xlsx(fullrc2,paste(input$name,"xlsx",sep="."),sheetName="fullrc2",append=TRUE,overwrite=TRUE)
-    })
-    
     output$downloadReport <- downloadHandler(
         filename = function() {
             filename=gsub("\\.[^.]*$","",input$file1$name)
