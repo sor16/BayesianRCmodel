@@ -23,16 +23,28 @@ dashboardPage(
                     column(width=8,
                            tabBox(
                                id = "tabset1",width=NULL,
-                                tabPanel('Plots',uiOutput('plots1')),
-                                tabPanel('Numeric summary', 
+                                tabPanel('Plots 1',uiOutput('plots1')),
+                                tabPanel('Numeric summary 1',
+                                         h4("Data fitted"),
                                          htmlOutput('tafla1'),
-                                         htmlOutput('rctafla1'),
-                                         textOutput("hakk")
+                                         h4("Fit for unobserved stages"),
+                                         htmlOutput('fitrctafla1'),
+                                         h4("95% posterior predictive lower for unobserved stages"),
+                                         htmlOutput('lowerrctafla1'),
+                                         h4("95% posterior predictive upper for unobserved stages"),
+                                         htmlOutput("upperrctafla1"),
+                                         textOutput('hakk')
                                 ),
-                                tabPanel('Plots2',uiOutput('plots2')),
+                                tabPanel('Plots 2',uiOutput('plots2')),
                                 tabPanel('Numeric summary 2',
+                                         h4("Data fitted"),
                                          htmlOutput('tafla2'),
-                                         htmlOutput('rctafla2')
+                                         h4("Fit for unobserved stages"),
+                                         htmlOutput('fitrctafla2'),
+                                         h4("95% posterior predictive lower for unobserved stages"),
+                                         htmlOutput('lowerrctafla2'),
+                                         h4("95% posterior predictive upper for unobserved stages"),
+                                         htmlOutput('upperrctafla2')
                                          
                                 )
                             ),

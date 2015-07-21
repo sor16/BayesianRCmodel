@@ -105,15 +105,35 @@ shinyServer(function(input, output) {
                     tafla=tafla[with(tafla,order(Date)),]
                     
                     xout=seq(ceiling(c_hat*10)/10,-0.01+ceiling(Wmax*10)/10,by=0.01)
-                    interpol=approx(simdata$W,simdata$fit,xout=xout)
-                    rctafla=t(as.data.frame(split(x=interpol$y, f=ceiling(seq_along(interpol$y)/10))))
-                    colnames(rctafla)=0:9
-                    rctafla=round(exp(rctafla),3)
-                    Stage=seq(min(interpol$x),max(interpol$x),by=0.1)*100
-                    rctafla=cbind(Stage,rctafla)
+                    
+                    fitinterpol=approx(simdata$W,simdata$fit,xout=xout)
+                    fitrctafla=t(as.data.frame(split(x=fitinterpol$y, f=ceiling(seq_along(fitinterpol$y)/10))))
+                    colnames(fitrctafla)=0:9
+                    fitrctafla=round(exp(fitrctafla),3)
+                    Stage=seq(min(fitinterpol$x),max(fitinterpol$x),by=0.1)*100
+                    fitrctafla=as.data.frame(cbind(Stage,fitrctafla))
+                    
+                    lowerinterpol=approx(simdata$W,simdata$lower,xout=xout)
+                    lowerrctafla=t(as.data.frame(split(x=lowerinterpol$y, f=ceiling(seq_along(lowerinterpol$y)/10))))
+                    colnames(lowerrctafla)=0:9
+                    lowerrctafla=round(exp(lowerrctafla),3)
+                    Stage=seq(min(lowerinterpol$x),max(lowerinterpol$x),by=0.1)*100
+                    lowerrctafla=as.data.frame(cbind(Stage,lowerrctafla))
+                    
+                    upperinterpol=approx(simdata$W,simdata$upper,xout=xout)
+                    upperrctafla=t(as.data.frame(split(x=upperinterpol$y, f=ceiling(seq_along(upperinterpol$y)/10))))
+                    colnames(upperrctafla)=0:9
+                    upperrctafla=round(exp(upperrctafla),3)
+                    Stage=seq(min(upperinterpol$x),max(upperinterpol$x),by=0.1)*100
+                    upperrctafla=as.data.frame(cbind(Stage,upperrctafla))
+                    
+                    plottafla=as.data.frame(cbind(lowerinterpol$y,fitinterpol$y,upperinterpol$y))
+                    plottafla=exp(plottafla)
+                    names(plottafla)=c("Lower","Fit","Upper")
+                    plottafla$W=xout
                     
                     return(list("varappr"=varappr,"qvdata"=qvdata,"simdata"=simdata,"realdata"=realdata,
-                                "tafla"=tafla,"mu"=mu,"c_hat"=c_hat,"rctafla"=rctafla))
+                                "tafla"=tafla,"mu"=mu,"c_hat"=c_hat,"fitrctafla"=fitrctafla,"lowerrctafla"=lowerrctafla,"upperrctafla"=upperrctafla,"plottafla"=plottafla))
                     
                 })
             }
@@ -313,14 +333,37 @@ shinyServer(function(input, output) {
                     tafla$diffQ=tafla$Q-tafla$Qfit
                     names(tafla)=c("Date","Time","W","Q", "Q fit","Lower", "Upper","Q diff")
                     tafla=tafla[with(tafla,order(Date)),]
-                    xout=seq(ceiling((min(RC$w)-exp(t_m[1]))*10)/10,-0.01+ceiling(max(RC$O)*10)/10,by=0.01)
-                    interpol=approx(ypodata$W,ypodata$fit,xout=xout)
-                        rctafla=t(as.data.frame(split(x=interpol$y, f=ceiling(seq_along(interpol$y)/10))))
-                        colnames(rctafla)=0:9
-                        rctafla=round(exp(rctafla),3)
-                        Stage=seq(min(interpol$x),max(interpol$x),by=0.1)*100
-                        rctafla=cbind(Stage,rctafla)
-                    return(list("qvdata"=qvdata,"betadata"=betadata,"ypodata"=ypodata,"realdata"=realdata,"tafla"=tafla,"rctafla"=rctafla))
+                    
+                    xout=seq(ceiling((min(RC$w)-exp(t_m[1]))*10)/10,-0.01+ceiling(Wmax*10)/10,by=0.01)
+                    
+                    fitinterpol=approx(ypodata$W,ypodata$fit,xout=xout)
+                    fitrctafla=t(as.data.frame(split(x=fitinterpol$y, f=ceiling(seq_along(fitinterpol$y)/10))))
+                    colnames(fitrctafla)=0:9
+                    fitrctafla=round(exp(fitrctafla),3)
+                    Stage=seq(min(fitinterpol$x),max(fitinterpol$x),by=0.1)*100
+                    fitrctafla=as.data.frame(cbind(Stage,fitrctafla))
+                    
+                    lowerinterpol=approx(ypodata$W,ypodata$lower,xout=xout)
+                    lowerrctafla=t(as.data.frame(split(x=lowerinterpol$y, f=ceiling(seq_along(lowerinterpol$y)/10))))
+                    colnames(lowerrctafla)=0:9
+                    lowerrctafla=round(exp(lowerrctafla),3)
+                    Stage=seq(min(lowerinterpol$x),max(lowerinterpol$x),by=0.1)*100
+                    lowerrctafla=as.data.frame(cbind(Stage,lowerrctafla))
+                    
+                    upperinterpol=approx(ypodata$W,ypodata$upper,xout=xout)
+                    upperrctafla=t(as.data.frame(split(x=upperinterpol$y, f=ceiling(seq_along(upperinterpol$y)/10))))
+                    colnames(upperrctafla)=0:9
+                    upperrctafla=round(exp(upperrctafla),3)
+                    Stage=seq(min(upperinterpol$x),max(upperinterpol$x),by=0.1)*100
+                    upperrctafla=as.data.frame(cbind(Stage,upperrctafla))
+                    
+                    plottafla=as.data.frame(cbind(lowerinterpol$y,fitinterpol$y,upperinterpol$y))
+                    plottafla=exp(plottafla)
+                    names(plottafla)=c("Lower","Fit","Upper")
+                    plottafla$W=xout
+                    
+                    return(list("qvdata"=qvdata,"betadata"=betadata,"ypodata"=ypodata,"realdata"=realdata,"tafla"=tafla,
+                                "fitrctafla"=fitrctafla,"lowerrctafla"=lowerrctafla,"upperrctafla"=upperrctafla,"plottafla"=plottafla))
                 })
             }
         }
@@ -429,12 +472,33 @@ shinyServer(function(input, output) {
         
     })
     output$hakk <- renderPrint({
-        input$file1
     })
-    output$rctafla1 <- renderGvis({
+    output$fitrctafla1 <- renderGvis({
         if(!is.null(model1())){
-            rctafla1=as.data.frame(model1()$rctafla)
-            gvisTable(rctafla1,options=list(
+            fitrctafla1=as.data.frame(model1()$fitrctafla)
+            gvisTable(fitrctafla1,options=list(
+                page='enable',
+                pageSize=30,
+                width=550
+            ))
+        }
+        
+    })
+    output$lowerrctafla1 <- renderGvis({
+        if(!is.null(model1())){
+            lowerrctafla1=as.data.frame(model1()$lowerrctafla)
+            gvisTable(lowerrctafla1,options=list(
+                page='enable',
+                pageSize=30,
+                width=550
+            ))
+        }
+        
+    })
+    output$upperrctafla1 <- renderGvis({
+        if(!is.null(model1())){
+            upperrctafla1=as.data.frame(model1()$upperrctafla)
+            gvisTable(upperrctafla1,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
@@ -497,10 +561,10 @@ shinyServer(function(input, output) {
         
         
     })
-    output$rctafla2 <- renderGvis({
+    output$fitrctafla2 <- renderGvis({
         if(!is.null(model2())){
-            rctafla2=as.data.frame(model2()$rctafla)
-            gvisTable(rctafla2,options=list(
+            fitrctafla2=as.data.frame(model2()$fitrctafla)
+            gvisTable(fitrctafla2,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
@@ -508,6 +572,29 @@ shinyServer(function(input, output) {
         
         } 
     })
+    output$lowerrctafla2 <- renderGvis({
+        if(!is.null(model2())){
+            lowerrctafla2=as.data.frame(model2()$lowerrctafla)
+            gvisTable(lowerrctafla2,options=list(
+                page='enable',
+                pageSize=30,
+                width=550
+            ))
+            
+        } 
+    })
+    output$upperrctafla2 <- renderGvis({
+        if(!is.null(model2())){
+            upperrctafla2=as.data.frame(model2()$upperrctafla)
+            gvisTable(upperrctafla2,options=list(
+                page='enable',
+                pageSize=30,
+                width=550
+            ))
+            
+        } 
+    })
+    
     
     #######Interactivity#######
     
@@ -546,18 +633,19 @@ shinyServer(function(input, output) {
         tablelist=list()
         if(!is.null(model1())){
             tablelist$data1=model1()$tafla
-            tablelist$fullrc1=model1()$rctafla
+            tablelist$fitfullrc1=model1()$fitrctafla
+            tablelist$lowerfullrc1=model1()$lowerrctafla
+            tablelist$upperfullrc1=model1()$upperrctafla
+            tablelist$plotfullrc1=model1()$plottafla
         }
         if(!is.null(model2())){
             tablelist$data2=model2()$tafla
-            tablelist$fullrc2=model2()$rctafla
+            tablelist$fitfullrc2=model2()$fitrctafla
+            tablelist$lowerfullrc2=model2()$lowerrctafla
+            tablelist$upperfullrc2=model2()$upperrctafla
+            tablelist$plotfullrc2=model2()$plottafla
         }
         lapply(names(tablelist),function(x) write.xlsx(tablelist[[x]],paste(name,"xlsx",sep="."),sheetName=x,append=TRUE,row.names=FALSE))
-        
-#         write.xlsx(data2,paste(input$name,"xlsx",sep="."),sheetName="data2",append=TRUE)
-#         write.xlsx(fullrc1,paste(input$name,"xlsx",sep="."),sheetName="fullrc1",append=TRUE)
-#         write.xlsx(fullrc2,paste(input$name,"xlsx",sep="."),sheetName="fullrc2",append=TRUE)
-#  
     })
     output$downloadReport <- downloadHandler(
         filename = function() {
