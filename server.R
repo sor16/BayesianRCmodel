@@ -8,7 +8,7 @@ options(shiny.usecairo=T)
 
 
 
-
+vals<-reactiveValues()
 shinyServer(function(input, output) {
     
     data <- reactive({
@@ -32,6 +32,7 @@ shinyServer(function(input, output) {
             }
             qvdata=qvdata[with(qvdata,order(W)),]
             wq=as.matrix(qvdata[,3:4])
+            vals$keeprows=rep(TRUE,nrow(wq))
         }
         return(list("wq"=wq,"qvdata"=qvdata))
     })
@@ -141,9 +142,13 @@ shinyServer(function(input, output) {
     })
     ranges1 <- reactiveValues(x = NULL, y = NULL)
     ranges2 <- reactiveValues(x = NULL, y = NULL)
+    dummy <- reactiveValues(Q=NULL,W=NULL)
+    force <- reactiveValues(Q=NULL,W=NULL)
     
     plotratingcurve1 <- reactive({
         plotlist=model1()
+        dummy=as.data.frame(reactiveValuesToList(dummy))
+        force=as.data.frame(reactiveValuesToList(force))
         rclog=NULL
         rcraun=NULL
         rcleiflog=NULL
@@ -154,12 +159,21 @@ shinyServer(function(input, output) {
         if(!is.null(plotlist$qvdata)) {
             realdata=plotlist$realdata
             simdata=plotlist$simdata
+            keep=realdata[vals$keeprows, ,drop=FALSE]
+            exclude=realdata[!vals$keeprows, ,drop=FALSE]
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=realdata,aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
+                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=keep,aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
                     geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
-                    theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges1$x, ylim = ranges1$y)
+                    theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges1$x, ylim = ranges1$y)+
+                    geom_point(data=exclude,aes(exp(Q),W),fill=NA,col="black",alpha=0.75,shape=21)
+                if(any(dim(dummy))){
+                    rcraun=rcraun+geom_point(data=dummy,aes(Q,W),fill="red",col="red")
+                }
+                if(any(dim(force))){
+                    rcraun=rcraun+geom_point(data=force,aes(Q,W),fill="blue",col="blue")
+                }
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
@@ -188,9 +202,6 @@ shinyServer(function(input, output) {
                 
                 outputlist$rcleiflog=rcleiflog
             }
-#             outputlist$tafla=tafla
-#             outputlist$rctafla=plotlist$rctafla
-            
             
         }
         
@@ -472,6 +483,11 @@ shinyServer(function(input, output) {
         
     })
     output$hakk <- renderPrint({
+        plotlist=model1()
+        realdata=plotlist$realdata
+        keep=realdata[vals$keeprows, ,drop=FALSE]
+        exclude=realdata[!vals$keeprows, ,drop=FALSE]
+        vals$keeprows
     })
     output$fitrctafla1 <- renderGvis({
         if(!is.null(model1())){
@@ -621,6 +637,30 @@ shinyServer(function(input, output) {
             ranges2$x <- NULL
             ranges2$y <- NULL
         }
+    })
+    
+    observeEvent(input$plot1_click,{
+        wq=as.data.frame(data()$wq)
+        wq$W=0.01*wq$W
+        res <- nearPoints(wq, input$plot1_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
+        if(any(res$selected_)){
+            vals$keeprows=xor(vals$keeprows,res$selected_)
+        }else if(input$force==TRUE){
+            force$W=c(force$W,input$plot1_click$y)
+            force$Q=c(force$Q,input$plot1_click$x)
+        }else{
+            dummy$W=c(dummy$W,input$plot1_click$y)
+            dummy$Q=c(dummy$Q,input$plot1_click$x)
+        }
+        
+    })
+    observeEvent(input$reset,{
+        wq=data()$wq
+        vals$keeprows=rep(TRUE,nrow(wq))
+        dummy$W=NULL
+        dummy$Q=NULL
+        force$W=NULL
+        force$Q=NULL
     })
     
     observeEvent(input$xlsxexport, {

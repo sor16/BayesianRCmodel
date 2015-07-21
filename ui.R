@@ -80,10 +80,12 @@ dashboardPage(
                             conditionalPanel(condition="input.checkboxA == true", 
                                              sliderInput("slider", label = "Date Range", min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
                                                         value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep=""),
-                                             textInput("Wmax",label="Maximum stage")
+                                             textInput("Wmax",label="Maximum stage"),
+                                             checkboxInput('force',label='Add forcepoint',value=FALSE)
                                                                                   
                             ),
                             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
+                            actionButton('reset',label='Reset'),
                             actionButton("go", label="Submit"),
                             br(),br(),br(),
                             downloadButton('downloadReport',label="Download as PDF"),
