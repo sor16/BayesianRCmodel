@@ -27,7 +27,12 @@ Formula for lower predictive: $$\ \hat{Q}_{lower}(W) = \hat{Q}(W) \cdot {(e^{1.9
 Formula for upper predictive: $$\ \hat{Q}_{lower}(W) = \hat{Q}(W) \cdot {(e^{1.96})}^ {\sigma_{\epsilon}} = \hat{Q}(W) \cdot {(e^{1.96})}^ {`r varappr`} = \hat{Q}(W) \cdot `r exp(predict)`$$
 
 ```{r results='asis',echo=FALSE}
-stargazer(plotratingcurve1()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE,digits=3,digits.extra=3)
+plotlist=model1()
+tafla=plotlist$tafla
+tafla$Qfit=format(round(exp(tafla[,"Q fit"]),3),nsmall=3)
+tafla$lower=format(round(exp(tafla$Lower),3),nsmall=3)
+tafla$upper=format(round(exp(tafla$Upper),3),nsmall=3)
+stargazer(tafla,type="latex",summary=FALSE, title=paste('Rating Curve from Model 1 for ',input$name),header=FALSE,digits=3,digits.extra=3)
 ```
 
 ```{r,echo=FALSE}
@@ -58,8 +63,13 @@ if(length(plotratingcurve1())>=4)
 ```
 
 ```{r results='asis',echo=FALSE}
+plotlist=model2()
+tafla=plotlist$tafla
+tafla$Qfit=format(round(exp(tafla[,"Q fit"]),3),nsmall=3)
+tafla$lower=format(round(exp(tafla$Lower),3),nsmall=3)
+tafla$upper=format(round(exp(tafla$Upper),3),nsmall=3)
 
-stargazer(plotratingcurve2()$tafla,type="latex",summary=FALSE, title=input$name,header=FALSE,digits=3,digits.extra=3)
+stargazer(tafla,type="latex",summary=FALSE, title=paste('Rating Curve from Model 2 for ',input$name),header=FALSE,digits=3,digits.extra=3)
 ```
 
 ```{r,echo=FALSE}

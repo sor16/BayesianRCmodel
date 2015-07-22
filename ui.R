@@ -72,7 +72,7 @@ dashboardPage(
                             selectInput("select", label = "Choose country", choices = list("Iceland" = 'Iceland'), 
                                         selected = 'Iceland'),
                             textInput("name","Name of river"),
-                            fileInput('file1', 'Choose file'),
+                            fileInput('file', 'Choose file'),
                             checkboxGroupInput("checkbox", label = "Output",
                                                 choices=list("Real scale"="raun","Logarithmic scale"="log",
                                                 "Real scale residuals"="leifraun","Standardized residuals"="leiflog") ,selected = NULL),
@@ -81,7 +81,7 @@ dashboardPage(
                                              sliderInput("slider", label = "Date Range", min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
                                                         value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep=""),
                                              textInput("Wmax",label="Maximum stage"),
-                                             checkboxInput('force',label='Add forcepoint',value=FALSE)
+                                             radioButtons('clickopts',label='Use click to:',choices=list('Zoom'='zoom','Add dummypoint'='dummy','Add forcepoint'='force'),selected='zoom')
                                                                                   
                             ),
                             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
