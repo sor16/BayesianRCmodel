@@ -13,12 +13,13 @@ ranges1 <- reactiveValues(x = NULL, y = NULL)
 ranges2 <- reactiveValues(x = NULL, y = NULL)
 dummy <- reactiveValues(Q=NULL,W=NULL)
 force <- reactiveValues(Q=NULL,W=NULL)
+breakpoints <- reactiveValues(Q=NULL,W=NULL)
 shinyServer(function(input, output) {
 
     data <- eventReactive(input$go,{
         dummy=reactiveValuesToList(dummy)
         force=reactiveValuesToList(force)
-        cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows,shiny=TRUE)
+        cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,slider=input$slider)
         vals$keeprows=rep(TRUE,nrow(cleandata$wq))
         return(cleandata)
     })
@@ -35,106 +36,9 @@ shinyServer(function(input, output) {
                     dummy$Q=NULL
                     force$W=NULL
                     force$Q=NULL
+                    breakpoints$W=NULL
+                    breakpoints$Q=NULL
                     return(output)
-#                 wq=data()$wq
-#                 qvdata=data()$qvdata
-#                 withProgress(message = 'Making plot', value = 0, {
-#                     RC=priors(input$select)
-#                     
-#                     RC$y=as.matrix(log(wq[,2]));
-#                     RC$w=wq[,1]; #to meters 
-#                     RC$w_tild=RC$w-min(RC$w);
-#                     RC$n=length(RC$y);
-#                     
-#                     
-#                     Dens <- function(th){ Densevalm11(th,RC)$pmin}
-#                     Densmin=optim(par=c(0,0),Dens,hessian=TRUE)
-#                     t_m=as.matrix(Densmin$par)
-#                     H=Densmin$hessian
-#                     
-#                     
-#                     l_m=as.matrix(log(RC$w_tild+exp(t_m[1,]))) 
-#                     
-#                     X_m=cbind(matrix(1,nrow(l_m),ncol(l_m)),l_m) 
-#                     
-#                     L=t(chol(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))) 
-#                     
-#                     mu=solve(t(L),(solve(L,(RC$Sinvmu+t(X_m)%*%RC$y/exp(t_m[2,])))))
-#                     
-#                     v_temp=X_m%*%solve(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))%*%t(X_m) 
-#                     
-#                     varappr=mean(as.matrix(diag(v_temp)+exp(t_m[2,])))
-#                     
-#                     RC$fit=X_m%*%mu
-#                     
-#                     RC$confinterval= cbind(X_m%*%mu+qnorm(0.025,0,sqrt(varappr)),X_m%*%mu+qnorm(0.975,0,sqrt(varappr))) 
-#                     
-#                     realdata=data.frame(W=RC$w,Q=RC$y)
-#                     realdata$l_m=l_m
-#                     realdata$fit=RC$fit
-#                     realdata$upper=RC$confinterval[,2]
-#                     realdata$lower=RC$confinterval[,1]
-#                     c_hat=min(realdata$W)-exp(t_m[1,])
-#                     Wmax=as.numeric(input$Wmax)
-#                     if(is.na(Wmax)){
-#                         Wmax=max(RC$w)
-#                     }
-#                     simdata=data.frame(W=seq(ceiling(c_hat*10)/10,ceiling(Wmax*10)/10,length.out=1000))
-#                     simdata$l_m = log(simdata$W-c_hat)
-#                     simdata$fit=mu[1,]+mu[2,]*simdata$l_m
-#                     simdata$upper=simdata$fit+qnorm(0.975,0,sqrt(varappr))
-#                     simdata$lower=simdata$fit+qnorm(0.025,0,sqrt(varappr))
-#                     realdata$residraun=(exp(realdata$Q)-exp(realdata$fit))
-#                     realdata$residupper=exp(realdata$upper)-exp(realdata$fit)
-#                     realdata$residlower=exp(realdata$lower)-exp(realdata$fit)
-#                     realdata$residlog=(realdata$Q-realdata$fit)/sqrt(exp(t_m[2,]))
-#                     
-#                     tafla=qvdata
-#                     tafla$W=tafla$W
-#                     tafla$Q=round(tafla$Q,1)
-#                     tafla$Qfit=as.numeric(round(exp(realdata$fit),3))
-#                     tafla$lower=round(exp(realdata$lower),3)
-#                     tafla$upper=round(exp(realdata$upper),3)
-#                     tafla$diffQ=tafla$Q-tafla$Qfit
-#                     names(tafla)=c("Date","Time","Quality","W","Q", "Q fit","Lower", "Upper","Q diff")
-#                     tafla=tafla[with(tafla,order(Date)),]
-#                     
-#                     xout=seq(ceiling(c_hat*10)/10,-0.01+ceiling(Wmax*10)/10,by=0.01)
-#                     
-#                     fitinterpol=approx(simdata$W,simdata$fit,xout=xout)
-#                     fitrctafla=t(as.data.frame(split(x=fitinterpol$y, f=ceiling(seq_along(fitinterpol$y)/10))))
-#                     colnames(fitrctafla)=0:9
-#                     fitrctafla=round(exp(fitrctafla),3)
-#                     Stage=seq(min(fitinterpol$x),max(fitinterpol$x),by=0.1)*100
-#                     fitrctafla=as.data.frame(cbind(Stage,fitrctafla))
-#                     
-#                     lowerinterpol=approx(simdata$W,simdata$lower,xout=xout)
-#                     lowerrctafla=t(as.data.frame(split(x=lowerinterpol$y, f=ceiling(seq_along(lowerinterpol$y)/10))))
-#                     colnames(lowerrctafla)=0:9
-#                     lowerrctafla=round(exp(lowerrctafla),3)
-#                     Stage=seq(min(lowerinterpol$x),max(lowerinterpol$x),by=0.1)*100
-#                     lowerrctafla=as.data.frame(cbind(Stage,lowerrctafla))
-#                     
-#                     upperinterpol=approx(simdata$W,simdata$upper,xout=xout)
-#                     upperrctafla=t(as.data.frame(split(x=upperinterpol$y, f=ceiling(seq_along(upperinterpol$y)/10))))
-#                     colnames(upperrctafla)=0:9
-#                     upperrctafla=round(exp(upperrctafla),3)
-#                     Stage=seq(min(upperinterpol$x),max(upperinterpol$x),by=0.1)*100
-#                     upperrctafla=as.data.frame(cbind(Stage,upperrctafla))
-#                     
-#                     plottafla=as.data.frame(cbind(lowerinterpol$y,fitinterpol$y,upperinterpol$y))
-#                     plottafla=exp(plottafla)
-#                     names(plottafla)=c("Lower","Fit","Upper")
-#                     plottafla$W=xout
-#                     #Reset reactiveValues
-#                     vals$keeprows=rep(TRUE,nrow(wq))
-#                     dummy$W=NULL
-#                     dummy$Q=NULL
-#                     force$W=NULL
-#                     force$Q=NULL
-#                     
-#                     return(list("varappr"=varappr,"qvdata"=qvdata,"simdata"=simdata,"realdata"=realdata,
-#                                 "tafla"=tafla,"mu"=mu,"c_hat"=c_hat,"fitrctafla"=fitrctafla,"lowerrctafla"=lowerrctafla,"upperrctafla"=upperrctafla,"plottafla"=plottafla))
                     
                 })
             }
@@ -146,6 +50,7 @@ shinyServer(function(input, output) {
         plotlist=model1()
         dummy=as.data.frame(reactiveValuesToList(dummy))
         force=as.data.frame(reactiveValuesToList(force))
+        breakpoints=as.data.frame(reactiveValuesToList(breakpoints))
         rclog=NULL
         rcraun=NULL
         rcleiflog=NULL
@@ -170,6 +75,9 @@ shinyServer(function(input, output) {
                 }
                 if(any(dim(force))){
                     rcraun=rcraun+geom_point(data=force,aes(Q,W),fill="blue",col="blue")
+                }
+                if(any(dim(breakpoints))){
+                    rcraun=rcraun+geom_point(data=breakpoints,aes(Q,W),fill="green4",col="green4")
                 }
                 outputlist$rcraun=rcraun
             }
@@ -215,172 +123,10 @@ shinyServer(function(input, output) {
                     dummy$Q=NULL
                     force$W=NULL
                     force$Q=NULL
+                    breakpoints$W=NULL
+                    breakpoints$Q=NULL
                     return(output)
                     
-#                     Nit=20000
-#                     
-#                     RC=priors("Iceland")
-#                     
-#                     RC$nugget=10^-8
-#                     RC$mu_sb=0.5
-#                     RC$mu_pb=0.5
-#                     RC$tau_pb2=0.25^2
-#                     RC$s=3
-#                     RC$v=5
-#                     
-#                     RC$y=rbind(as.matrix(log(wq[,2])),0)
-#                     RC$w=as.matrix(wq[,1])
-#                     RC$w_tild=RC$w-min(RC$w)
-#                     
-#                     Adist1 <- Adist(RC$w)
-#                     RC$A=Adist1$A
-#                     RC$dist=Adist1$dist
-#                     RC$n=Adist1$n
-#                     RC$N=Adist1$N
-#                     RC$O=Adist1$O
-#                     
-#                     RC$P=diag(nrow=5,ncol=5,6)-matrix(nrow=5,ncol=5,1)
-#                     RC$Sig_ab= rbind(c(RC$sig_a^2, RC$p_ab*RC$sig_a*RC$sig_b), c(RC$p_ab*RC$sig_a*RC$sig_b, RC$sig_b^2))
-#                     RC$mu_x=as.matrix(c(RC$mu_a,RC$mu_b, rep(0,RC$n))) #Setja i RC
-#                     
-#                     RC$B=B_splines(t(RC$w_tild)/RC$w_tild[length(RC$w_tild)])
-#                     RC$Z=cbind(t(rep(0,2)),t(rep(1,RC$n)))
-#                     
-#                     RC$m1=matrix(0,nrow=2,ncol=RC$n)
-#                     RC$m2=matrix(0,nrow=RC$n,ncol=2)
-#                     theta.init=rep(0,9)
-#                     
-#                     Dens = function(th) {-Densevalm22(th,RC)$p}
-#                     Densmin=optim(par=theta.init,Dens,method="L-BFGS-B",hessian=TRUE)
-#                     t_m =Densmin$par
-#                     H=Densmin$hessian
-#                     phi_b=t_m[3]
-#                     sig_b2=t_m[2]
-#                     zeta=t_m[1]
-#                     lambda=t_m[4:9]
-#                     l=log(RC$w_tild+exp(t_m[1]))
-#                     varr_m=exp(RC$B%*%lambda)
-#                     Sig_eps=diag(as.numeric(rbind(varr_m,0)))
-#                     R_Beta=(1+sqrt(5)*RC$dist/exp(phi_b)+5*RC$dist^2/(3*exp(phi_b)^2))*exp(-sqrt(5)*RC$dist/exp(phi_b))+diag(1,RC$n,RC$n)*RC$nugget
-#                     Sig_x=rbind(cbind(RC$Sig_ab,matrix(0,nrow=2,ncol=RC$n)),cbind(matrix(0,nrow=RC$n,ncol=2),exp(sig_b2)*R_Beta))
-#                     
-#                     X=rbind(cbind(matrix(1,dim(l)),l,diag(as.numeric(l))%*%RC$A),RC$Z)
-#                     
-#                     
-#                     L=t(chol(as.matrix(X%*%Sig_x%*%t(X)+Sig_eps)))
-#                     
-#                     w=solve(L,(-RC$y+X%*%RC$mu_x))
-#                     mu=RC$mu_x-Sig_x%*%(t(X)%*%(solve(t(L),w)))
-#                     LH=t(chol(H))/0.8
-#                     
-#                     cl <- makeCluster(4)
-#                     registerDoParallel(cl)
-#                     Wmax=as.numeric(input$Wmax)
-#                     if(is.na(Wmax)){
-#                         Wmax=ceiling(max(RC$O)*10)/10
-#                     }
-#                     WFill=W_unobserved(RC$O,min=ceiling((min(RC$O)-exp(t_m[1]))*10)/10,max=Wmax)
-#                     RC$W_u=WFill$W_u
-#                     RC$W_u_tild=WFill$W_u_tild
-#                     RC$Bsim=B_splines(t(RC$W_u_tild)/RC$W_u_tild[length(RC$W_u_tild)])
-#                     MCMC <- foreach(i=1:4,.combine=cbind,.export=c("Densevalm22","Densevalm22_u")) %dopar% {
-#                         ypo_obs=matrix(0,nrow=RC$N,ncol=Nit)
-#                         param=matrix(0,nrow=9+RC$n+2,ncol=Nit)
-#                         t_old=as.matrix(t_m)
-#                         Dens<-Densevalm22(t_old,RC)
-#                         p_old=Dens$p
-#                         ypo_old=Dens$ypo
-#                         x_old=Dens$x
-#                         
-#                         for(j in 1:Nit){
-#                             t_new=t_old+solve(t(LH),rnorm(9,0,1))
-#                             Densnew<-Densevalm22(t_new,RC)
-#                             x_new=Densnew$x
-#                             ypo_new=Densnew$ypo
-#                             p_new=Densnew$p
-#                             logR=p_new-p_old
-#                             
-#                             if (logR>log(runif(1))){
-#                                 t_old=t_new
-#                                 p_old=p_new
-#                                 ypo_old=ypo_new
-#                                 x_old=x_new
-#                                 
-#                                 
-#                             }
-#                             ypo_obs[,j]=ypo_old
-#                             param[,j]=rbind(t_old,x_old)    
-#                         }
-#                         seq=seq(2000,Nit,5)
-#                         ypo_obs=ypo_obs[,seq]
-#                         param=param[,seq]
-#                         unobserved=apply(param,2,FUN=function(x) Densevalm22_u(x,RC))
-#                         #x_obs=param[10:nrow(param),]
-#                         output=rbind(ypo_obs,unobserved)
-#                         
-#                         return(output)
-#                     }
-#                     stopCluster(cl)
-#                     betasamples=apply(MCMC[(RC$N+length(RC$W_u)+1):nrow(MCMC),],2,FUN=function(x){x[2]+x[3:length(x)]})
-#                     yposamples=MCMC[1:(RC$N+length(RC$W_u)),]
-#                     ypodata=as.data.frame(t(apply(yposamples,1,quantile, probs = c(0.025,0.5, 0.975),na.rm=T)))
-#                     names(ypodata)=c("lower","fit","upper")
-#                     ypodata$W=c(RC$w,RC$W_u)
-#                     ypodata$l_m=c(l,log(RC$W_u-min(RC$O)+exp(t_m[1])))
-#                     realdata=ypodata[1:RC$N,]
-#                     ypodata=ypodata[with(ypodata,order(W)),]
-#                     
-#                     betadata=as.data.frame(t(apply(betasamples,1,quantile, probs = c(0.025,0.5, 0.975),na.rm=T)))
-#                     names(betadata)=c("lower","fit","upper")
-#                     betadata$W=c(RC$O,RC$W_u)
-#                     betadata=betadata[with(betadata,order(W)),]
-#                     
-#                     realdata$Q=RC$y[1:RC$N,]
-#                     realdata$residraun=(exp(realdata$Q)-exp(realdata$fit))
-#                     realdata$residupper=exp(realdata$upper)-exp(realdata$fit)
-#                     realdata$residlower=exp(realdata$lower)-exp(realdata$fit)
-#                     realdata$residlog=(realdata$Q-realdata$fit)/sqrt(varr_m)
-#                     
-#                     tafla=qvdata
-#                     tafla$W=tafla$W
-#                     tafla$Q=round(tafla$Q,1)
-#                     tafla$Qfit=round(exp(realdata$fit),3)
-#                     tafla$lower=round(exp(realdata$lower),3)
-#                     tafla$upper=round(exp(realdata$upper),3)
-#                     tafla$diffQ=tafla$Q-tafla$Qfit
-#                     names(tafla)=c("Date","Time","Quality","W","Q", "Q fit","Lower", "Upper","Q diff")
-#                     tafla=tafla[with(tafla,order(Date)),]
-#                     
-#                     xout=seq(ceiling((min(RC$w)-exp(t_m[1]))*10)/10,-0.01+ceiling(Wmax*10)/10,by=0.01)
-#                     
-#                     fitinterpol=approx(ypodata$W,ypodata$fit,xout=xout)
-#                     fitrctafla=t(as.data.frame(split(x=fitinterpol$y, f=ceiling(seq_along(fitinterpol$y)/10))))
-#                     colnames(fitrctafla)=0:9
-#                     fitrctafla=round(exp(fitrctafla),3)
-#                     Stage=seq(min(fitinterpol$x),max(fitinterpol$x),by=0.1)*100
-#                     fitrctafla=as.data.frame(cbind(Stage,fitrctafla))
-#                     
-#                     lowerinterpol=approx(ypodata$W,ypodata$lower,xout=xout)
-#                     lowerrctafla=t(as.data.frame(split(x=lowerinterpol$y, f=ceiling(seq_along(lowerinterpol$y)/10))))
-#                     colnames(lowerrctafla)=0:9
-#                     lowerrctafla=round(exp(lowerrctafla),3)
-#                     Stage=seq(min(lowerinterpol$x),max(lowerinterpol$x),by=0.1)*100
-#                     lowerrctafla=as.data.frame(cbind(Stage,lowerrctafla))
-#                     
-#                     upperinterpol=approx(ypodata$W,ypodata$upper,xout=xout)
-#                     upperrctafla=t(as.data.frame(split(x=upperinterpol$y, f=ceiling(seq_along(upperinterpol$y)/10))))
-#                     colnames(upperrctafla)=0:9
-#                     upperrctafla=round(exp(upperrctafla),3)
-#                     Stage=seq(min(upperinterpol$x),max(upperinterpol$x),by=0.1)*100
-#                     upperrctafla=as.data.frame(cbind(Stage,upperrctafla))
-#                     
-#                     plottafla=as.data.frame(cbind(lowerinterpol$y,fitinterpol$y,upperinterpol$y))
-#                     plottafla=exp(plottafla)
-#                     names(plottafla)=c("Lower","Fit","Upper")
-#                     plottafla$W=xout
-#                     
-#                     return(list("qvdata"=qvdata,"betadata"=betadata,"ypodata"=ypodata,"realdata"=realdata,"tafla"=tafla,
-#                                 "fitrctafla"=fitrctafla,"lowerrctafla"=lowerrctafla,"upperrctafla"=upperrctafla,"plottafla"=plottafla))
                 })
             }
         }
@@ -390,6 +136,7 @@ shinyServer(function(input, output) {
         plotlist=model2()
         dummy=as.data.frame(reactiveValuesToList(dummy))
         force=as.data.frame(reactiveValuesToList(force))
+        breakpoints=as.data.frame(reactiveValuesToList(breakpoints))
         rclog=NULL
         rcraun=NULL
         rcleiflog=NULL
@@ -414,6 +161,9 @@ shinyServer(function(input, output) {
                 }
                 if(any(dim(force))){
                     rcraun=rcraun+geom_point(data=force,aes(Q,W),fill="blue",col="blue")
+                }
+                if(any(dim(breakpoints))){
+                    rcraun=rcraun+geom_point(data=breakpoints,aes(Q,W),fill="green4",col="green4")
                 }
                 outputlist$rcraun=rcraun
             }
@@ -666,6 +416,10 @@ shinyServer(function(input, output) {
                 dummy$W=c(dummy$W,input$plot1_click$y)
                 dummy$Q=c(dummy$Q,input$plot1_click$x)
             }
+            else if(input$clickopts=='break'){
+                breakpoints$W=c(breakpoints$W,input$plot1_click$y)
+                breakpoints$Q=c(breakpoints$Q,input$plot1_click$x)
+            }
         }
         
     })
@@ -683,6 +437,10 @@ shinyServer(function(input, output) {
                 dummy$W=c(dummy$W,input$plot5_click$y)
                 dummy$Q=c(dummy$Q,input$plot5_click$x)
             }
+            else if(input$clickopts=='break'){
+                breakpoints$W=c(breakpoints$W,input$plot5_click$y)
+                breakpoints$Q=c(breakpoints$Q,input$plot5_click$x)
+            }
         }
         
     })
@@ -693,6 +451,8 @@ shinyServer(function(input, output) {
         dummy$Q=NULL
         force$W=NULL
         force$Q=NULL
+        breakpoints$W=NULL
+        breakpoints$Q=NULL
     })
     
     observeEvent(input$xlsxexport, {

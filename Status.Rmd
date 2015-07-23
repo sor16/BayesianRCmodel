@@ -1,0 +1,287 @@
+---
+title: "Status"
+author: "Sölvi Rögnvaldsson"
+output: html_document
+---
+
+##Inngangur##   
+   
+Heill og sæll meistari!
+
+Smá stutt yfirlit af því sem ég er búinn að gera síðustu 3 vikur:
+
+* Kláraði unobserved fallið (heitir Densevalm22_u í RCmodels)
+   
+* Skrifaði fall sem valdi unpbserved vatnshæðir til þess að reikna á þannig að þær væru sem fæstar en samt nægilega margar (W_unobserved í RCmodels).
+    
+* Bætti við Wmax input-i þar sem lykillinn er extendaður eins langt og notandinn vill. By default er lykillinn teiknaður nálægt c-gildi (sjá hugsanlegt vandamál þar)
+
+* Bjó til töflu fyrir fit, lower og upper fyrir W gildi með 0.01 millibili þar sem linear interpolation er notuð.
+   
+* Bjó til clean fall (clean í RCmodels)
+   
+* Lagaði model1 og model2 í RCmodels (föllin heita nú model1BH og model2BH)
+
+* Plottaði betuna fyrir model 2
+   
+* Implementaði föllinn í staðinn fyrir allan kóðann inn í Shiny án þess að taka burt WithProgress({})
+   
+* Bætti við interactive fítusum. Nú er hægt að velja Zoom(annars kemur punktur þegar maður klikkar til að zooma),dummy punkt,forcepunkt og breakpoint. Í öllum tilfellum er hægt að klikka nálægt punkti og þá excluderast hann. Allir punktarnir gefa mismunandi liti.
+   
+* uppfærði módelið þannig að dummy og exclude point virka, þ.e. þegar þú submittar aftur keyrist módelið með þeim punktum sem þú bættir við á grafið
+
+Í þessu skjali fer ég yfir aðeins nánar um þess punkta og skrifa um hugmyndir og líka hvað á eftir að gera.
+
+##Unobserved##
+
+sjá Densevalm_u í RCmodels.
+   
+  Þegar þú fórst út hafði okkur tekist að sampla betuna en þá gerðum við það útfrá median af betunum ur fyrri keyrslunni. Það kom hinsvegar í ljós að við þurftum að nota útreiknaðar betur úr fyrri MCMC keyrslunni ( x[3:nrow(wq)], þar sem x[1]=a,x[b]) þannig að inntakið inní fallið heitir param þar sem fyrri MCMC keyrslan skilar í hverri ítrun út param=c(th,x). Nýja betuna fyrir unobserved gildin skýrði ég beta_u og þá var ekki mikið eftir.Lítur svona út:
+  
+```{r,results="asis",eval=FALSE}
+    #ath að zeta=log(min(RC$O)-c) þar sem c er breytilegur stiki úr fyrri MCMC keyrslunni
+    #nota RC$O mikið í þessu falli því en RC$O er skilað úr Adist sem er í raun W_unique
+    c=min(RC$O)-exp(zeta)
+    l=log(RC$W_u-c)
+    X=cbind(rep(1,m),l,matrix(0,m,n),diag(l))
+    #vector of parameters
+    x=c(x,beta_u)
+    #sample from the posterior of discharge y
+    ypo = X%*%x + as.matrix(rnorm(m)) * sqrt(varr)
+    return(c(ypo,x))
+```
+
+Síðan að skilgreini ég X og x eins og Birgir talaði um. ypo er síðan reiknað en þá kom smá vesen. Hvernig átti að skilgreina varr. varr er skilgreindur útfrá Bsplines með unobserved gildum:
+```{r,results="asis",eval=FALSE}
+    varr = c(exp(RC$Bsim %*% lambda))
+```
+ Þá kom vesen. Hvernig átti að skilgreina variance-inn sem reiknaður er í Bsplines sem er fyrir neðan observed gildum eða fyrir ofan þau ef það ætti að framlengja lykilinn í báðar áttir. Birgir sagði að variance-inn væri ekki skilgreindur á því bili og því ætti að gera ráð fyrir föstum variance-i. Þá tók ég mig til og skrifaði bæði fall sem valdi heppilegar vatnshæðir milli mælinganna og síðan W gildi fyrir neðan og ofan mælinganna:
+```{r,results="asis",eval=FALSE}
+W_unobserved <- function(W_unique,min=NULL,max=NULL){
+    W_u=NULL
+    W_u_tild=NULL
+    min=round(min,2)
+    max=round(max,2)
+    w=100*W_unique #work in cm
+    #distance between subsequent elements in vector with additional pseudopoint 1000 so the lengths match
+    distvect=abs(w-c(w[2:length(w)],1000))
+    #add datapoints to corresponding distances to see range of distance
+    distwithdata=rbind(w,distvect,c(w[2:length(w)],1000))
+    #filter out colmuns where distance is morw than 4 between
+    distfilter=distwithdata[,distvect>4]
+
+    if(ncol(distfilter)!=0){
+        #remove dummy distance
+        distfilter=distfilter[,-ncol(distfilter)]
+        #make sequence from the ranges with length.out equal to corresponding elelement in distvect
+        W_u=0.01*unlist(apply(distfilter,2,FUN=function(x){setdiff(seq(x[1],x[3],length.out=round(x[2])),c(x[1],x[3]))
+        }))
+    }
+    if(!is.null(min)|!is.null(max)){
+        minseq=setdiff(seq(min,min(W_unique),by=0.02),c(min(W_unique)))
+        maxseq=setdiff(seq(round(max(W_unique),2),max,by=0.02),c(round(max(W_unique),2)))
+        W_spline=c(rep(min(W_unique),length(minseq)),W_u,rep(max(W_unique),length(maxseq)))
+        W_u=c(minseq,W_u,maxseq)
+        W_u_tild=W_spline-min(W_unique)
+    }else{
+        W_u_tild=W_u-min(W_unique)
+    }
+    return(list("W_u"=W_u,"W_u_tild"=W_u_tild))
+}
+
+```
+Þetta fall býr til nokkuð equally spaced grid frá min uppí max með 0.02 millibili(2 cm). Þetta grid er stuðst við þegar Densevalm22_u er keyrt.Þetta skilar W_u_tild Sem er W_u-min(lægsta mælda vatnshæðin), en athuga að fyrir neðan og ofan observed gildin er stökin í W_u_tild það sama og lægsta og hæsta gildið fyrir unobserved gildin sem eru í range_inu á gögnunum. Þannig er tryggir það fastann variance fyrir neðan og ofan. Þetta W_u_tild er sett inn í Bsplines. MCMC keyrslan í heild lítur þá svona út:
+```{r,results="asis",eval=FALSE}
+    #Athuga að ceiling er til þess að geta gert linear interpolation að lengd sem er deilanleg með 10 sjá næsta kafla. Ceiling á min er til þess að í MCMC keyrslunni fari ekki mínus tala inní log(W-c) þar sem c er hreyfanlegur stiki. Þetta getur verið vandamál samt, skoða nánari umræðu síðar.
+    Wmax=ceiling(Wmax*10)/10
+    Wmin=ceiling(Wmin*10)/10
+    WFill=W_unobserved(RC$O,min=Wmin,max=Wmax)
+    RC$W_u=WFill$W_u
+    RC$W_u_tild=WFill$W_u_tild
+    RC$Bsim=B_splines(t(RC$W_u_tild)/RC$W_u_tild[length(RC$W_u_tild)])
+    MCMC <- foreach(i=1:4,.combine=cbind,.export=c("Densevalm22","Densevalm22_u")) %dopar% {
+        ypo_obs=matrix(0,nrow=RC$N,ncol=Nit)
+        param=matrix(0,nrow=9+RC$n+2,ncol=Nit)
+        t_old=as.matrix(t_m)
+        Dens<-Densevalm22(t_old,RC)
+        p_old=Dens$p
+        ypo_old=Dens$ypo
+        x_old=Dens$x
+
+        for(j in 1:Nit){
+            t_new=t_old+solve(t(LH),rnorm(9,0,1))
+            Densnew<-Densevalm22(t_new,RC)
+            x_new=Densnew$x
+            ypo_new=Densnew$ypo
+            p_new=Densnew$p
+            logR=p_new-p_old
+
+            if (logR>log(runif(1))){
+                t_old=t_new
+                p_old=p_new
+                ypo_old=ypo_new
+                x_old=x_new
+
+
+            }
+            ypo_obs[,j]=ypo_old
+            param[,j]=rbind(t_old,x_old)
+        }
+        seq=seq(2000,Nit,5)
+        ypo_obs=ypo_obs[,seq]
+        param=param[,seq]
+        unobserved=apply(param,2,FUN=function(x) Densevalm22_u(x,RC))
+        output=rbind(ypo_obs,unobserved)
+
+        return(output)
+    }
+    stopCluster(cl)
+```
+taktu eftir því að áður en unobserved gildin eru reiknuð í lokin er búið að fækka sömplum (burnin=2000 og thin=5, þ.e. valið fimmta hvert stak eftir 2000 ítranir) Þetta gerir það að verkum að það er mun hraðara því það þarf bara a reikna fyrir subset af fyrri sömplum. Output-ið er ypo observed og síðan c(ypo_unobserved,x) úr Densevalm_u fallinu.
+
+##Interpolation##
+Veðurstofan ósakði eftir því að fá númerískan lykil fyrir bæði módelin sjá pdf skjal í þessari möppu sem heitir nfr_2015_2_ytri_ranga.pdf. Lykillinn er á cm bili og því þurfti ég að nota linear interpolation milli punkta á grid-inu sem ég var kominn með. Birgir stakk upp á þessu, því þegar búið er að reikna lykilinn á svona fínu gridi þá gefur línuleg nálgun jafngott fit og fyrir útreiknað fit. Það er mjög auðvelt í R þar sem notað er fallið approx():
+
+```{r,results="asis",eval=FALSE}
+    #Dæmi fyrir fit interpolation þar sem ypodata eru öll ypo, bæði observed og unobserved
+    #-0.01 svo taflan gangi upp, sjá pdf skjal (endi á 69 í staðinn fyrir 70 t.d.)
+    xout=seq(Wmin,-0.01+Wmax,by=0.01)
+
+    fitinterpol=approx(ypodata$W,ypodata$fit,xout=xout)
+    #þetta er bara svona leikfimi til að setja töfluna upp
+    fitrctafla=t(as.data.frame(split(x=fitinterpol$y, f=ceiling(seq_along(fitinterpol$y)/10))))
+    colnames(fitrctafla)=0:9
+    fitrctafla=round(exp(fitrctafla),3)
+    Stage=seq(min(fitinterpol$x),max(fitinterpol$x),by=0.1)*100
+    fitrctafla=as.data.frame(cbind(Stage,fitrctafla))
+    #sjá otput í numeric summary 1 eða 2 í shiny
+```
+
+Síðan báðu þau um að exporta þessu sem excel skjali svo þau gætu unnið með gögnin svo ég gerði það, notaði xlsx pakkann til þess.
+
+##Clean##
+Ákvað að búa til clean fall sem er þægilegt í notkun fyrir athuganir og prófanir á modelunum. Athugaðu að shiny=TRUE argumentið á bara við í shiny því þá eru gögnin á forminu data frame með nöfn name,size,type og datapath. By default er shiny=FALSE og þá nægir að setja txt file-inn beint inn. Tékkaðu á list2env() fallinu, notaði það svolítið. Það unleashar stök úr lista inn í environmentið. Þægilegt í sumum tilfellum. Outputið úr clean fer síðan beint inní model1BH() eða Model2BH(). Þarna eru líka argument svosem dummy,force og keeprows(hvaða gögn á að nota t.d. ef búið er að klikka á gagnapunkt og það á að excludera hann). Fyrir dummy og force er teknir inn listar, fyrir dummy er dummy=list(W=einhvervigur,Q=einhvervigur) og eins fyrir force. Þessum puntkum er síðan bætt við gögnin. Ástæðan fyrir því að þetta eru listar er af því að reactiveValues eru geymd sem listar (googlaðu til að sjá nánar).
+
+##Model1 og Model2 föll##
+Ákvað að öll töfluoutputinn ættu að vera inní model útreikningum því þar eru svolitlir útreikningar. Þess vegna er outputlist úr plotratingcurve 1 og 2 í shiny núna bara með plotin.
+
+##Interactivity##
+er búinn að gera það kleift að velja forcepoint,breakpoint,dummy point og exclude point með clicki, en aðeins dummy og exclude virka fyrir módelið. Þyrfti að implementa force og break (sjá hugmyndir fyrir neðan). Hér er notast við reactiveValues sem núllstillast eftir hverja keyrslu á módelinu. Hér er rcraun plottað interactively í plotratingcurve2 
+```{r,results="asis",eval=FALSE}
+        dummy=as.data.frame(reactiveValuesToList(dummy))
+        force=as.data.frame(reactiveValuesToList(force))
+        breakpoints=as.data.frame(reactiveValuesToList(breakpoints))
+        rclog=NULL
+        rcraun=NULL
+        rcleiflog=NULL
+        rcleifraun=NULL
+        tafla=NULL
+        outputlist=list()
+        if(!is.null(plotlist$qvdata)) {
+            ypodata=plotlist$ypodata
+            betadata=plotlist$betadata
+            realdata=plotlist$realdata
+            keep=realdata[vals$keeprows, ,drop=FALSE]
+            #hér er exclude fundið 
+            exclude=realdata[!vals$keeprows, ,drop=FALSE]
+            
+            if ("raun" %in% input$checkbox){
+                rcraun=ggplot(ypodata)+theme_bw()+geom_point(data=keep,aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
+                    geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")+
+                    ggtitle(paste("Rating curve for",input$name))+ylab("W [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
+                    theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges2$x, ylim = ranges2$y)+
+                    geom_point(data=exclude,aes(exp(Q),W),fill=NA,col="black",alpha=0.75,shape=21)
+                if(any(dim(dummy))){
+                    rcraun=rcraun+geom_point(data=dummy,aes(Q,W),fill="red",col="red")
+                }
+                # any segir til um ef eitthvað er ekki núll dim skilar 0 0 ef ekkert er valið og þá skilar any FALSE
+                if(any(dim(force))){
+                    rcraun=rcraun+geom_point(data=force,aes(Q,W),fill="blue",col="blue")
+                }
+                if(any(dim(breakpoints))){
+                    rcraun=rcraun+geom_point(data=breakpoints,aes(Q,W),fill="green4",col="green4")
+                }
+                outputlist$rcraun=rcraun
+```
+
+##Framhaldið##
+Hér er stöff sem á eftir að gera:
+ *gera googleVis breiðari fyrir numeric summary eftir að ég bætti við Quality
+ *bæta við Q% dálki Qdiff/Qmeas að ósk veðurstofu Veðurstofu
+
+ *Eins og staðan er núna þá skrifa ég excelskjölin ef bæði model eru valin á 10 sheet. Væri gott ef hægt væri að sameina t.d. interpolation töflurnar(fitrctafla,lowerrctafla og upperrctafla) á eitt sheet, ætti ekki að vera það mikið vesen:
+```{r,results="asis",eval=FALSE}
+        name=input$name
+        if(nchar(name)==0){
+            name="River1"
+        }
+        wb <- createWorkbook()
+        saveWorkbook(wb, paste(name,'xlsx',sep="."))
+        tablelist=list()
+        if(!is.null(model1())){
+            tablelist$data1=model1()$tafla
+            tablelist$fitfullrc1=model1()$fitrctafla
+            tablelist$lowerfullrc1=model1()$lowerrctafla
+            tablelist$upperfullrc1=model1()$upperrctafla
+            tablelist$plotfullrc1=model1()$plottafla
+        }
+        if(!is.null(model2())){
+            tablelist$data2=model2()$tafla
+            tablelist$fitfullrc2=model2()$fitrctafla
+            tablelist$lowerfullrc2=model2()$lowerrctafla
+            tablelist$upperfullrc2=model2()$upperrctafla
+            tablelist$plotfullrc2=model2()$plottafla
+        }
+        lapply(names(tablelist),function(x) write.xlsx(tablelist[[x]],paste(name,"xlsx",sep="."),sheetName=x,append=TRUE,row.names=FALSE))  
+```
+ * Bæta við slider þar sem maður remove-ar years á ákveðnu tímabili
+ 
+ * Gera þrjú myreport skjöl, eitt fyrir bæði módelin, eitt fyrir model 1 og eitt fyrir model 2 og búa til if setningar þannig að forritið vísi á rétt myreport skjal miðað við input$checkbox2 í downloadhandler í content fallinu.
+ 
+ * RCmodels. googla roxygen pakkann og skoða hvernig maður documenterar pakka með devtools og roxygen. Documentationið myndi birtast t.d. ef maður gerir ?B_splines þá kæmi á hvaða formi inputin eru og svona.
+ 
+ * Skoðaðu commit commentin, bæði fyrir RCmodels og BayesianRCmodels
+ 
+ * Vinna í breakpoints (kannski) hér er hugmynd að útfærslu
+  Varðandi breakpoint þá ræddi ég við Birgi um það og við vorum sammála um að módel 2 ætti að geta ráðið við svona ár þar sem cross sectionið er breytilegt og því ætti ekki að þurfa að gera breakpoint. ég stakk uppá að við myndum fá gögn um ár sem eru severe case og sérstaklega erfiðar við lyklagerð sökum erfirðar crossectionar og fá lykla sem þeir bjuggu til úr sínum módelum og bera saman við venjulega model2 keyrslu og þá meta hvort við ættum að implementera breakpoint. hringdu í Birgi og ræddu þetta við hann. hér er smá vangaveltur um hvernig væri hægt að gera breakpoint.
+```{r,results="asis",eval=FALSE}
+        #vector er vigur með W gildum sem valin eru á plottinu Þetta er þyrfti að gera sér inn í data() fyrir utan clean fallið
+        #sum(unlist(lapply(force,length)))!=0 tryggir að breakpoints listinn sé ekki tómur þ.e. að það sé búið að velja breakpoint
+        breakpoints=reactiveValuesToList(breakpoints)
+        if(sum(unlist(lapply(breakpoints,length)))!=0)
+        #Dæmi um W gildi sem valin voru þetta myndi breytast í vector=breakpoints$W
+        vector=c(1.3,1.35)
+        # NA í Wmin í clean verður min observed og NA í Wmax verður max observed
+        min=c(NA,vector)
+        max=c(vector,NA)
+        lapply(1:length(max),function(x) clean("V316.txt",Wmin=min[x],Wmax=max[x]))
+        #þetta gefur þér lista af lengd length(max) þar sem hvert stak er listi með stök wq og qvdata
+            
+        inní model1 reactive fallinu í shiny væri almennt hægt að gera
+        clean=data()
+        breakpoints=reactiveValuesToList(breakpoints)
+        if(sum(unlist(lapply(breakpoints,length)))!=0)
+            vector=c(1.3,1.35)
+            # NA í Wmin í clean verður min observed og NA í Wmax verður max observed
+            min=c(NA,vector)
+            max=c(vector,NA)
+        output=lapply(1:length(max),function(x) model1BH(clean[[x]]),Wmin=min[x],Wmax=max[x])
+        # Þetta gefur þér lista af lengd length(max) þar sem hvert stak er list með jafnmörgum stökum og model1BH() skilar
+        #til þess að binda saman öll þessi stök í eina niðurstöðu mætti gera:
+        finaloutput=lapply(1:length(output[[1]]),function(x)rbind(output[[1]][[x]],output[[2]][[x]],output[[3]][[x]])
+        #veit ekki alveg hvernig ættti að gera dynamic mörg stök í output, gætir þurft að gera forlúppu.
+        #Gætir líka lent í veseni með interpolation töflurnar, þyrfti að skoða það. Gæti verið að betra sé að flytja þær úr model1BH fallinu en samt inn í          #model1( reactive fallinu)
+            
+```
+ 
+ * Forcepoint (klárlega að gera, breakpoint er svolítið aukaatriði). til þess að ná því þarftu að overwrite-a þá röð(eða dálkur man ekki hvernig fylki) í Bsplines fylkinu sem inniheldur forcepunktsmælinguna og replace-a rep(0.001,6) þ.e. lítll variance í þeim punkti sem á að forcera
+```{r,results="asis",eval=FALSE}
+ RC$Bsim=B_splines(t(RC$W_u_tild)/RC$W_u_tild[length(RC$W_u_tild)])
+RC$Bsim[sá punktur sem á að overwrite-a]=rep(0.001,6)
+```
+talaðu við Birgi um þetta.
+
+ * Eitt enn, Njáll ætlar að senda þér póst ef Svíarnir svara og senda gögn. Ræddu þá við Birgi um næstu skref ef svo er.
+ 
+##Lokaorð##
+ Þetta er líklega verst skrifaða skjal sem ég hef nokkurn tíma skrifað. Vonandi skilur þú eitthvað. hentu á mig fb message og kannski skype-um við þegar ég er kominn til Svíþjóðar. Skemmtu þér vel í þessari glímu við módelin :)

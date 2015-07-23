@@ -80,8 +80,8 @@ dashboardPage(
                             conditionalPanel(condition="input.checkboxA == true", 
                                              sliderInput("slider", label = "Date Range", min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
                                                         value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep=""),
-                                             textInput("Wmax",label="Maximum stage"),
-                                             radioButtons('clickopts',label='Use click to:',choices=list('Zoom'='zoom','Add dummypoint'='dummy','Add forcepoint'='force'),selected='zoom')
+                                             textInput("Wmax",label="Maximum stage (m)"),
+                                             radioButtons('clickopts',label='Use click to:',choices=list('Zoom'='zoom','Add dummypoint'='dummy','Add forcepoint'='force','Add breakpoint'='break'),selected='zoom')
                                                                                   
                             ),
                             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
