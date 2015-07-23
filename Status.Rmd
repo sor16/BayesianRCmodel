@@ -243,7 +243,7 @@ Hér er stöff sem á eftir að gera:
  * Skoðaðu commit commentin, bæði fyrir RCmodels og BayesianRCmodels
  
  * Vinna í breakpoints (kannski) hér er hugmynd að útfærslu
-  Varðandi breakpoint þá ræddi ég við Birgi um það og við vorum sammála um að módel 2 ætti að geta ráðið við svona ár þar sem cross sectionið er breytilegt og því ætti ekki að þurfa að gera breakpoint. ég stakk uppá að við myndum fá gögn um ár sem eru severe case og sérstaklega erfiðar við lyklagerð sökum erfirðar crossectionar og fá lykla sem þeir bjuggu til úr sínum módelum og bera saman við venjulega model2 keyrslu og þá meta hvort við ættum að implementera breakpoint. hringdu í Birgi og ræddu þetta við hann. hér er smá vangaveltur um hvernig væri hægt að gera breakpoint.
+  Varðandi breakpoint þá ræddi ég við Birgi um það og við vorum sammála um að módel 2 ætti að geta ráðið við svona ár þar sem cross sectionið er breytilegt og því ætti ekki að þurfa að gera breakpoint. ég stakk uppá að við myndum fá gögn um ár sem eru severe case og sérstaklega erfiðar við lyklagerð sökum erfirðar crossectionar og fá lykla sem þeir bjuggu til úr sínum módelum og bera saman við venjulega model2 keyrslu og þá meta hvort við ættum að implementera breakpoint. hringdu í Birgi og ræddu þetta við hann. Hafðu samband við Veðurstofu og biddu um gögn af þessu tagi. Það er best að hringja til þess að tékka hver er inni. Njáll er í sumarfríi en Hilmar kemur  27. júlí. Hér eru smá vangaveltur um hvernig væri hægt að gera breakpoint.
 ```{r,results="asis",eval=FALSE}
         #vector er vigur með W gildum sem valin eru á plottinu Þetta er þyrfti að gera sér inn í data() fyrir utan clean fallið
         #sum(unlist(lapply(force,length)))!=0 tryggir að breakpoints listinn sé ekki tómur þ.e. að það sé búið að velja breakpoint
@@ -270,7 +270,6 @@ Hér er stöff sem á eftir að gera:
         #til þess að binda saman öll þessi stök í eina niðurstöðu mætti gera:
         finaloutput=lapply(1:length(output[[1]]),function(x)rbind(output[[1]][[x]],output[[2]][[x]],output[[3]][[x]])
         #veit ekki alveg hvernig ættti að gera dynamic mörg stök í output, gætir þurft að gera forlúppu.
-        #Gætir líka lent í veseni með interpolation töflurnar, þyrfti að skoða það. Gæti verið að betra sé að flytja þær úr model1BH fallinu en samt inn í          #model1( reactive fallinu)
             
 ```
  
@@ -282,6 +281,17 @@ RC$Bsim[sá punktur sem á að overwrite-a]=rep(0.001,6)
 talaðu við Birgi um þetta.
 
  * Eitt enn, Njáll ætlar að senda þér póst ef Svíarnir svara og senda gögn. Ræddu þá við Birgi um næstu skref ef svo er.
+ 
+##Vandamál##
+
+Þegar ég prófa V64.txt fæst neikvæður c stiki en modelið reiknast samt sem áður, gerist líka í MATLAB, skoðaðu bls 27 í ritgerðinni hans Helga og spurðu Birgir hvað skal gera. Þetta gerðist líka þegar ég tók eina skrítna línu úr gögnunum þar sem Q var 2450 m^3/s og W er 0. Var bara að sjá þetta núna í dag. V316.txt er bara 20 sek í tölvunni minni uppí vinnu en V64.txt er alveg 369 sek í minni tölvu (það er útaf því að c-ið er svo lítið að það reiknar fáránlega marga punkta, lægsta mæling er 167 cm en c-ið er -100 cm svo fjöldi mælinga sem gert er ráðfyrir er þá 267/2,ca 134punktar til viðbótar við gögnin og unobserved gildi milli gagnanna eru margir svo á endanum urðu þetta 446 punktar). Miðað við að það reiknaði 446 punkta þá er módelið helv hratt bara.Þarf kannski að gefa c-inu nýtt gildi ef það er neikvætt. Látum Birgi finna út úr því hvernig það er gert. Þyrfti að prófa á fleiri gögn, reyndu að fá eitthvað meira frá Veðurstofunni. Gætir líka notað gögnin frá dropboxinu, en athugaðu að bæði föllin model1BH og model2BH þurfa qvdata líka sem inntak. Gætir samt keyrt stóran hluta af fallinu þar sem qvdata þarf bara við gerð taflanna.Kannski væri jafnvel ekki vitlaust að búa til annað fall sem gerir allar töflur og model1BH og model2BH þurfi bara að taka in wq. Þá væri auðveldara að prófa gögnin frá dropboxinu.
+
+##Uppsetning##
+ui.R virkar en gæti verið flottara, endilega skoðaðu það. Varðandi Code kaflann, held ég að það sé best að við vísum í pakkann á github síðunni okkar og skrifum örlítið með,svosem hvaða pakka við notuðum og hvernig pakkinn okkar er uppsettur. Theory kaflann ætlar Birgir að skrifa með okkur í ágúst. Varðandi Instructions þá var ég pæla hvort það væri ekki gaman að gera svona demonstration vídjó saman þegar ég kem heim. Bara pæling.
+
+##Server##
+Búinn að tala við reiknistofnun og það er ekkert mál að hosta hjá þeim. Ræðum þetta við Birgi og fleiri í lok sumars.
+
  
 ##Lokaorð##
  Þetta er líklega verst skrifaða skjal sem ég hef nokkurn tíma skrifað. Vonandi skilur þú eitthvað. hentu á mig fb message og kannski skype-um við þegar ég er kominn til Svíþjóðar. Skemmtu þér vel í þessari glímu við módelin :)
