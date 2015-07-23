@@ -18,7 +18,7 @@ shinyServer(function(input, output) {
     data <- eventReactive(input$go,{
         dummy=reactiveValuesToList(dummy)
         force=reactiveValuesToList(force)
-        cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows)
+        cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows,shiny=TRUE)
         vals$keeprows=rep(TRUE,nrow(cleandata$wq))
         return(cleandata)
     })
@@ -192,7 +192,7 @@ shinyServer(function(input, output) {
             } 
             if("leiflog" %in% input$checkbox){
                 rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
+                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+
                     ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
                 
@@ -435,7 +435,7 @@ shinyServer(function(input, output) {
             } 
             if("leiflog" %in% input$checkbox){
                 rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(-4,4)+
+                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+
                     ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
                 
