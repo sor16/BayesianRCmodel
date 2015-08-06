@@ -19,10 +19,13 @@ shinyServer(function(input, output) {
     data <- eventReactive(input$go,{
         dummy=reactiveValuesToList(dummy)
         force=reactiveValuesToList(force)
-        cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,slider=input$slider)
+        #cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,slider=input$slider)
+        cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,experiod=input$checkboxY,dates=input$dates, slider=input$slider)
+
         vals$keeprows=rep(TRUE,nrow(cleandata$wq))
         return(cleandata)
     })
+    
     
     ## MODEL1 ##  Begin
     model1 <-eventReactive(input$go,{
