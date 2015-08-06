@@ -488,6 +488,8 @@ shinyServer(function(input, output) {
                 paste(filename,'pdf', sep=".")
             },
             content <- function(file) {
+                
+                if("mdl1" %in% input$checkbox2 & ("mdl2" %in% input$checkbox2)==FALSE ){
 
                 src <- normalizePath('myreport.Rmd')
                 
@@ -500,6 +502,36 @@ shinyServer(function(input, output) {
                 library(rmarkdown)
                 out <- render('myreport.Rmd',pdf_document())
                 file.rename(out, file)
+                }
+                
+                else if("mdl2" %in% input$checkbox2 & ("mdl1" %in% input$checkbox2)==FALSE ){
+                
+                src <- normalizePath('myreport.Rmd')
+                
+                # temporarily switch to the temp dir, in case you do not have write
+                #permission to the current working directory
+                owd <- setwd(tempdir())
+                on.exit(setwd(owd))
+                file.copy(src, 'myreport.Rmd')
+                
+                library(rmarkdown)
+                out <- render('myreport.Rmd',pdf_document())
+                file.rename(out, file)
+                }
+                else if("mdl1" %in% input$checkbox2 & "mdl2" %in% input$checkbox2 ){
+                
+                src <- normalizePath('myreport.Rmd')
+                
+                # temporarily switch to the temp dir, in case you do not have write
+                #permission to the current working directory
+                owd <- setwd(tempdir())
+                on.exit(setwd(owd))
+                file.copy(src, 'myreport.Rmd')
+                
+                library(rmarkdown)
+                out <- render('myreport.Rmd',pdf_document())
+                file.rename(out, file)
+                }
             }
     )
     
