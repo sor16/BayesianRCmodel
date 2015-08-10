@@ -80,6 +80,12 @@ dashboardPage(
                             conditionalPanel(condition="input.checkboxA == true", 
                                              sliderInput("slider", label = "Date Range", min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
                                                         value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep=""),
+                                             checkboxInput("checkboxY", label="Exclude years from a certain period", value=FALSE),
+                                             conditionalPanel(condition="input.checkboxY == true", 
+                                             dateRangeInput("dates", label = "Date range")),
+                                             #sliderInput("dates", "Range:", min = "date1", max = "date2", value = c("date1","date2"))),
+                                             #sliderInput("dates", "Range:",  min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
+                                             #value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep="")),
                                              textInput("Wmax",label="Maximum stage (m)"),
                                              radioButtons('clickopts',label='Use click to:',choices=list('Zoom'='zoom','Add dummypoint'='dummy','Add forcepoint'='force','Add breakpoint'='break'),selected='zoom')
                                                                                   
