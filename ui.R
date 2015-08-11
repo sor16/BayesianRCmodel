@@ -83,11 +83,8 @@ dashboardPage(
                                              checkboxInput("checkboxY", label="Exclude years from a certain period", value=FALSE),
                                              conditionalPanel(condition="input.checkboxY == true", 
                                              dateRangeInput("dates", label = "Date range")),
-                                             #sliderInput("dates", "Range:", min = "date1", max = "date2", value = c("date1","date2"))),
-                                             #sliderInput("dates", "Range:",  min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
-                                             #value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep="")),
                                              textInput("Wmax",label="Maximum stage (m)"),
-                                             radioButtons('clickopts',label='Use click to:',choices=list('Zoom'='zoom','Add dummypoint'='dummy','Add forcepoint'='force','Add breakpoint'='break'),selected='zoom')
+                                             radioButtons('clickopts',label='Use click to:',choices=list('Zoom'='zoom','Add dummypoint'='dummy','Add forcepoint'='force','Exclude point'='exclude'),selected='zoom')
                                                                                   
                             ),
                             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
@@ -95,8 +92,10 @@ dashboardPage(
                             actionButton("go", label="Submit"),
                             br(),br(),br(),
                             downloadButton('downloadReport',label="Download as PDF"),
-                            br(),br(),br(),
-                            actionButton('xlsxexport',label='Export tables to xlsx')
+                            br(),br(),
+                            actionButton('xlsxexport',label='Export tables to xlsx'),
+                            br(), br(),
+                            actionButton('downloadword',label='Download Images')
                         )
                     )
                 )

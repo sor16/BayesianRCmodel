@@ -1,0 +1,48 @@
+---
+title: "Bayesian Rating Curve"
+mathjax: "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+---
+```{r setup, include=FALSE}
+Sys.setlocale("LC_ALL","is_IS")
+```
+
+```{r echo=FALSE, include=FALSE}
+library(stargazer,quietly=TRUE)
+```  
+   
+```{r results='asis',echo=FALSE}
+plotlist=model2()
+tafla=plotlist$tafla
+tafla[,"Q fit"]=format(round(exp(tafla[,"Q fit"]),3),nsmall=3)
+tafla$Lower=format(round(exp(tafla$Lower),3),nsmall=3)
+tafla$Upper=format(round(exp(tafla$Upper),3),nsmall=3)
+
+stargazer(tafla,type="latex",summary=FALSE, title=paste('Rating Curve from Model 2 for ',input$name),header=FALSE,digits=3,digits.extra=3)
+```
+
+```{r,echo=FALSE}
+if(length(plotratingcurve2())!=0)
+    if(class(plotratingcurve2()[[1]])[1]=="gg")
+        plotratingcurve2()[[1]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=2)
+    if(class(plotratingcurve2()[[2]])[1]=="gg")
+        plotratingcurve2()[[2]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=3)
+    if(class(plotratingcurve2()[[3]])[1]=="gg")
+        plotratingcurve2()[[3]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=4)
+    if(class(plotratingcurve2()[[4]])[1]=="gg")
+        plotratingcurve2()[[4]]
+```

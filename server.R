@@ -4,6 +4,8 @@ library(RCmodels)
 library(ggplot2)
 library(xlsx)
 library(Cairo)
+library(rmarkdown)
+
 options(shiny.usecairo=T)
 
 
@@ -13,19 +15,25 @@ ranges1 <- reactiveValues(x = NULL, y = NULL)
 ranges2 <- reactiveValues(x = NULL, y = NULL)
 dummy <- reactiveValues(Q=NULL,W=NULL)
 force <- reactiveValues(Q=NULL,W=NULL)
-breakpoints <- reactiveValues(Q=NULL,W=NULL)
 shinyServer(function(input, output) {
 
     data <- eventReactive(input$go,{
+        if(is.null(input$file)){
+            return(NULL)
+            }
         dummy=reactiveValuesToList(dummy)
         force=reactiveValuesToList(force)
-        #cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,slider=input$slider)
-        cleandata=clean(input$file,dummy=dummy,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,experiod=input$checkboxY,dates=input$dates, slider=input$slider)
-
-        vals$keeprows=rep(TRUE,nrow(cleandata$wq))
+        cleandata=clean(input$file,dummy=dummy,force=force,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,experiod=input$checkboxY,dates=input$dates, slider=input$slider)
+         vals$keeprows=rep(TRUE,nrow(cleandata$wq))
         return(cleandata)
+         
     })
-    
+    output$hakk <- renderPrint({
+        qvdata=data()$qvdata
+        #qvdata[with(qvdata,order(Date)),]
+        R=c('Solvi og Axel (C)')
+        R
+    })
     
     ## MODEL1 ##  Begin
     model1 <-eventReactive(input$go,{
@@ -33,14 +41,6 @@ shinyServer(function(input, output) {
             if(!is.null(data())){
                 withProgress(message = 'Making plot', value = 0, {
                     output=model1BH(data(),country=input$select,Wmin="",Wmax=input$Wmax)
-                    #reset reactive values
-                    vals$keeprows=rep(TRUE,nrow(data()$wq))
-                    dummy$W=NULL
-                    dummy$Q=NULL
-                    force$W=NULL
-                    force$Q=NULL
-                    breakpoints$W=NULL
-                    breakpoints$Q=NULL
                     return(output)
                     
                 })
@@ -53,7 +53,6 @@ shinyServer(function(input, output) {
         plotlist=model1()
         dummy=as.data.frame(reactiveValuesToList(dummy))
         force=as.data.frame(reactiveValuesToList(force))
-        breakpoints=as.data.frame(reactiveValuesToList(breakpoints))
         rclog=NULL
         rcraun=NULL
         rcleiflog=NULL
@@ -68,8 +67,8 @@ shinyServer(function(input, output) {
             exclude=realdata[!vals$keeprows, ,drop=FALSE]
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=keep,aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
-                    geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")+
+                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=keep,aes(exp(Q),W))+geom_path(aes(exp(fit),W))+
+                    geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges1$x, ylim = ranges1$y)+
                     geom_point(data=exclude,aes(exp(Q),W),fill=NA,col="black",alpha=0.75,shape=21)
@@ -79,14 +78,11 @@ shinyServer(function(input, output) {
                 if(any(dim(force))){
                     rcraun=rcraun+geom_point(data=force,aes(Q,W),fill="blue",col="blue")
                 }
-                if(any(dim(breakpoints))){
-                    rcraun=rcraun+geom_point(data=breakpoints,aes(Q,W),fill="green4",col="green4")
-                }
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
-                rclog=ggplot(realdata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
-                    geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
+                rclog=ggplot(realdata)+geom_path(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_path(mapping=aes(lower,l_m),linetype="dashed")+
+                    geom_path(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
                     ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rclog=rclog
@@ -96,7 +92,7 @@ shinyServer(function(input, output) {
             if ("leifraun" %in% input$checkbox){
                 
                 rcleifraun=ggplot(realdata)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_line(aes(W,residupper),linetype="dashed")+geom_line(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
+                    geom_path(aes(W,residupper),linetype="dashed")+geom_path(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
                     ggtitle("Residual plot")+xlab("W  [m]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
@@ -120,14 +116,6 @@ shinyServer(function(input, output) {
             if(!is.null(data())){
                 withProgress(message = 'Making plot', value = 0, {
                     output=model2BH(data(),country=input$select,Wmin="",Wmax=input$Wmax)
-                    #reset reactive values
-                    vals$keeprows=rep(TRUE,nrow(data()$wq))
-                    dummy$W=NULL
-                    dummy$Q=NULL
-                    force$W=NULL
-                    force$Q=NULL
-                    breakpoints$W=NULL
-                    breakpoints$Q=NULL
                     return(output)
                     
                 })
@@ -139,7 +127,6 @@ shinyServer(function(input, output) {
         plotlist=model2()
         dummy=as.data.frame(reactiveValuesToList(dummy))
         force=as.data.frame(reactiveValuesToList(force))
-        breakpoints=as.data.frame(reactiveValuesToList(breakpoints))
         rclog=NULL
         rcraun=NULL
         rcleiflog=NULL
@@ -154,8 +141,8 @@ shinyServer(function(input, output) {
             exclude=realdata[!vals$keeprows, ,drop=FALSE]
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(ypodata)+theme_bw()+geom_point(data=keep,aes(exp(Q),W))+geom_line(aes(exp(fit),W))+
-                    geom_line(aes(exp(lower),W),linetype="dashed")+geom_line(aes(exp(upper),W),linetype="dashed")+
+                rcraun=ggplot(ypodata)+theme_bw()+geom_point(data=keep,aes(exp(Q),W))+geom_path(aes(exp(fit),W))+
+                    geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges2$x, ylim = ranges2$y)+
                     geom_point(data=exclude,aes(exp(Q),W),fill=NA,col="black",alpha=0.75,shape=21)
@@ -165,14 +152,11 @@ shinyServer(function(input, output) {
                 if(any(dim(force))){
                     rcraun=rcraun+geom_point(data=force,aes(Q,W),fill="blue",col="blue")
                 }
-                if(any(dim(breakpoints))){
-                    rcraun=rcraun+geom_point(data=breakpoints,aes(Q,W),fill="green4",col="green4")
-                }
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
-                rclog=ggplot(realdata)+geom_line(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_line(mapping=aes(lower,l_m),linetype="dashed")+
-                    geom_line(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
+                rclog=ggplot(realdata)+geom_path(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_path(mapping=aes(lower,l_m),linetype="dashed")+
+                    geom_path(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
                     ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rclog=rclog
@@ -181,7 +165,7 @@ shinyServer(function(input, output) {
             
             if ("leifraun" %in% input$checkbox){
                 rcleifraun=ggplot(realdata)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_line(aes(W,residupper),linetype="dashed")+geom_line(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
+                    geom_path(aes(W,residupper),linetype="dashed")+geom_path(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
                     ggtitle("Residual plot")+xlab("W  [cm]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
@@ -195,8 +179,8 @@ shinyServer(function(input, output) {
                 
                 outputlist$rcleiflog=rcleiflog
             }
-            smoothbeta=ggplot(data=betadata)+geom_line(aes(W,fit))+
-                geom_line(aes(W,lower),linetype="dashed")+geom_line(aes(W,upper),linetype="dashed")+
+            smoothbeta=ggplot(data=betadata)+geom_path(aes(W,fit))+
+                geom_path(aes(W,lower),linetype="dashed")+geom_path(aes(W,upper),linetype="dashed")+
                 ylab(expression(b+beta(W)))+ggtitle("b parameter as a function of stage W")+xlab("W [m]")+
                 theme(plot.title = element_text(vjust=2))+theme_bw()
                 outputlist$smoothbeta=smoothbeta
@@ -252,9 +236,7 @@ shinyServer(function(input, output) {
         }
         
     })
-    output$hakk <- renderPrint({
-        input$checkbox2
-    })
+  
     output$fitrctafla1 <- renderGvis({
         if(!is.null(model1())){
             fitrctafla1=as.data.frame(model1()$fitrctafla)
@@ -408,9 +390,8 @@ shinyServer(function(input, output) {
     observeEvent(input$plot1_click,{
         if("raun"%in% input$checkbox){
             wq=as.data.frame(data()$wq)
-            #wq$W=0.01*wq$W
             res <- nearPoints(wq, input$plot1_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
-            if(any(res$selected_)){
+            if(any(res$selected_) & input$clickopts=='exclude'){
                 vals$keeprows=xor(vals$keeprows,res$selected_)
             }else if(input$clickopts=='force'){
                 force$W=c(force$W,input$plot1_click$y)
@@ -419,19 +400,14 @@ shinyServer(function(input, output) {
                 dummy$W=c(dummy$W,input$plot1_click$y)
                 dummy$Q=c(dummy$Q,input$plot1_click$x)
             }
-            else if(input$clickopts=='break'){
-                breakpoints$W=c(breakpoints$W,input$plot1_click$y)
-                breakpoints$Q=c(breakpoints$Q,input$plot1_click$x)
-            }
         }
         
     })
     observeEvent(input$plot5_click,{
         if("raun"%in% input$checkbox){
             wq=as.data.frame(data()$wq)
-            #wq$W=0.01*wq$W
             res <- nearPoints(wq, input$plot5_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
-            if(any(res$selected_)){
+            if(any(res$selected_) & input$clickopts=='exclude'){
                 vals$keeprows=xor(vals$keeprows,res$selected_)
             }else if(input$clickopts=='force'){
                 force$W=c(force$W,input$plot5_click$y)
@@ -439,10 +415,6 @@ shinyServer(function(input, output) {
             }else if(input$clickopts=='dummy'){
                 dummy$W=c(dummy$W,input$plot5_click$y)
                 dummy$Q=c(dummy$Q,input$plot5_click$x)
-            }
-            else if(input$clickopts=='break'){
-                breakpoints$W=c(breakpoints$W,input$plot5_click$y)
-                breakpoints$Q=c(breakpoints$Q,input$plot5_click$x)
             }
         }
         
@@ -454,8 +426,6 @@ shinyServer(function(input, output) {
         dummy$Q=NULL
         force$W=NULL
         force$Q=NULL
-        breakpoints$W=NULL
-        breakpoints$Q=NULL
     })
     
     observeEvent(input$xlsxexport, {
@@ -482,6 +452,28 @@ shinyServer(function(input, output) {
         }
         lapply(names(tablelist),function(x) write.xlsx(tablelist[[x]],paste(name,"xlsx",sep="."),sheetName=x,append=TRUE,row.names=FALSE))
     })
+    
+    observeEvent(input$downloadword, {
+        names1=c('image1_model1','image2_model1','image3_model1','image4_model1')
+        names2=c('image1_model2','image2_model2','image3_model2','image4_model2','image5_model2')
+        if(length(plotratingcurve1())!=0){
+            for(i in 1:length(plotratingcurve1())){
+                
+                postscript(file=paste(names1[i],'eps',sep='.'),width = 10, height = 7.5)
+                print(plotratingcurve1()[[i]])
+                dev.off()
+            }
+        }
+        if(length(plotratingcurve2())!=0){
+            for(i in 1:length(plotratingcurve2())){
+                
+                pdf(paste(names2[i],'pdf',sep='.'))
+                print(plotratingcurve2()[[i]])
+                dev.off()
+            }
+        }
+    })
+    
     output$downloadReport <- downloadHandler(
             filename = function() {
                 filename=gsub("\\.[^.]*$","",input$file$name)
@@ -491,50 +483,46 @@ shinyServer(function(input, output) {
                 
                 if("mdl1" %in% input$checkbox2 & ("mdl2" %in% input$checkbox2)==FALSE ){
 
-                src <- normalizePath('myreport.Rmd')
-                
-                # temporarily switch to the temp dir, in case you do not have write
-                #permission to the current working directory
-                owd <- setwd(tempdir())
-                on.exit(setwd(owd))
-                file.copy(src, 'myreport.Rmd')
-                
-                library(rmarkdown)
-                out <- render('myreport.Rmd',pdf_document())
-                file.rename(out, file)
-                }
+                    src <- normalizePath('myreport1.Rmd')
+                    
+                    # temporarily switch to the temp dir, in case you do not have write
+                    #permission to the current working directory
+                    owd <- setwd(tempdir())
+                    on.exit(setwd(owd))
+                    file.copy(src, 'myreport1.Rmd')
+                    
+                    out <- render('myreport1.Rmd',pdf_document())
+                    file.rename(out, file)
+                    }
                 
                 else if("mdl2" %in% input$checkbox2 & ("mdl1" %in% input$checkbox2)==FALSE ){
                 
-                src <- normalizePath('myreport.Rmd')
-                
-                # temporarily switch to the temp dir, in case you do not have write
-                #permission to the current working directory
-                owd <- setwd(tempdir())
-                on.exit(setwd(owd))
-                file.copy(src, 'myreport.Rmd')
-                
-                library(rmarkdown)
-                out <- render('myreport.Rmd',pdf_document())
-                file.rename(out, file)
-                }
+                    src <- normalizePath('myreport2.Rmd')
+                    
+                    # temporarily switch to the temp dir, in case you do not have write
+                    #permission to the current working directory
+                    owd <- setwd(tempdir())
+                    on.exit(setwd(owd))
+                    file.copy(src, 'myreport2.Rmd')
+                    
+                    out <- render('myreport2.Rmd',pdf_document())
+                    file.rename(out, file)
+                    }
                 else if("mdl1" %in% input$checkbox2 & "mdl2" %in% input$checkbox2 ){
                 
-                src <- normalizePath('myreport.Rmd')
-                
-                # temporarily switch to the temp dir, in case you do not have write
-                #permission to the current working directory
-                owd <- setwd(tempdir())
-                on.exit(setwd(owd))
-                file.copy(src, 'myreport.Rmd')
-                
-                library(rmarkdown)
-                out <- render('myreport.Rmd',pdf_document())
-                file.rename(out, file)
+                    src <- normalizePath('myreport.Rmd')
+                    
+                    # temporarily switch to the temp dir, in case you do not have write
+                    #permission to the current working directory
+                    owd <- setwd(tempdir())
+                    on.exit(setwd(owd))
+                    file.copy(src, 'myreport.Rmd')
+                    
+                    out <- render('myreport.Rmd',pdf_document())
+                    file.rename(out, file)
                 }
             }
     )
-    
     
 })
 
