@@ -428,30 +428,35 @@ shinyServer(function(input, output) {
         force$Q=NULL
     })
     
-    observeEvent(input$xlsxexport, {
-        name=input$name
-        if(nchar(name)==0){
-            name="River1"
+    output$xlsxexport <- downloadHandler(
+        filename= function(){
+            name=input$name
+            if(nchar(name)==0){
+                name="River1"
+            }
+            paste(name,'xlsx',sep=".")
+        },
+        content = function(file){
+            wb <- createWorkbook()
+            saveWorkbook(wb,file)
+            tablelist=list()
+            if(!is.null(model1())){
+                tablelist$data1=model1()$tafla
+                tablelist$fitfullrc1=model1()$fitrctafla
+                tablelist$lowerfullrc1=model1()$lowerrctafla
+                tablelist$upperfullrc1=model1()$upperrctafla
+                tablelist$plotfullrc1=model1()$plottafla
+            }
+            if(!is.null(model2())){
+                tablelist$data2=model2()$tafla
+                tablelist$fitfullrc2=model2()$fitrctafla
+                tablelist$lowerfullrc2=model2()$lowerrctafla
+                tablelist$upperfullrc2=model2()$upperrctafla
+                tablelist$plotfullrc2=model2()$plottafla
+            }
+            lapply(names(tablelist),function(x) write.xlsx(tablelist[[x]],file,sheetName=x,append=TRUE,row.names=FALSE))
         }
-        wb <- createWorkbook()
-        saveWorkbook(wb, paste(name,'xlsx',sep="."))
-        tablelist=list()
-        if(!is.null(model1())){
-            tablelist$data1=model1()$tafla
-            tablelist$fitfullrc1=model1()$fitrctafla
-            tablelist$lowerfullrc1=model1()$lowerrctafla
-            tablelist$upperfullrc1=model1()$upperrctafla
-            tablelist$plotfullrc1=model1()$plottafla
-        }
-        if(!is.null(model2())){
-            tablelist$data2=model2()$tafla
-            tablelist$fitfullrc2=model2()$fitrctafla
-            tablelist$lowerfullrc2=model2()$lowerrctafla
-            tablelist$upperfullrc2=model2()$upperrctafla
-            tablelist$plotfullrc2=model2()$plottafla
-        }
-        lapply(names(tablelist),function(x) write.xlsx(tablelist[[x]],paste(name,"xlsx",sep="."),sheetName=x,append=TRUE,row.names=FALSE))
-    })
+    )
     
     observeEvent(input$downloadword, {
         names1=c('image1_model1','image2_model1','image3_model1','image4_model1')
@@ -481,46 +486,28 @@ shinyServer(function(input, output) {
             },
             content <- function(file) {
                 
+                owd <- setwd(tempdir())
+                on.exit(setwd(owd))
                 if("mdl1" %in% input$checkbox2 & ("mdl2" %in% input$checkbox2)==FALSE ){
 
                     src <- normalizePath('myreport1.Rmd')
-                    
-                    # temporarily switch to the temp dir, in case you do not have write
-                    #permission to the current working directory
-                    owd <- setwd(tempdir())
-                    on.exit(setwd(owd))
                     file.copy(src, 'myreport1.Rmd')
-                    
                     out <- render('myreport1.Rmd',pdf_document())
-                    file.rename(out, file)
                     }
                 
                 else if("mdl2" %in% input$checkbox2 & ("mdl1" %in% input$checkbox2)==FALSE ){
                 
                     src <- normalizePath('myreport2.Rmd')
-                    
-                    # temporarily switch to the temp dir, in case you do not have write
-                    #permission to the current working directory
-                    owd <- setwd(tempdir())
-                    on.exit(setwd(owd))
                     file.copy(src, 'myreport2.Rmd')
-                    
                     out <- render('myreport2.Rmd',pdf_document())
-                    file.rename(out, file)
                     }
                 else if("mdl1" %in% input$checkbox2 & "mdl2" %in% input$checkbox2 ){
                 
                     src <- normalizePath('myreport.Rmd')
-                    
-                    # temporarily switch to the temp dir, in case you do not have write
-                    #permission to the current working directory
-                    owd <- setwd(tempdir())
-                    on.exit(setwd(owd))
                     file.copy(src, 'myreport.Rmd')
-                    
                     out <- render('myreport.Rmd',pdf_document())
-                    file.rename(out, file)
                 }
+                file.rename(out, file)
             }
     )
     

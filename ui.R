@@ -93,9 +93,9 @@ dashboardPage(
                             br(),br(),br(),
                             downloadButton('downloadReport',label="Download as PDF"),
                             br(),br(),
-                            actionButton('xlsxexport',label='Export tables to xlsx'),
+                            downloadButton('xlsxexport',label='Export tables to xlsx'),
                             br(), br(),
-                            actionButton('downloadword',label='Download Images')
+                            downloadButton('downloadword',label='Download Images')
                         )
                     )
                 )
