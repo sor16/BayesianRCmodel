@@ -485,29 +485,27 @@ shinyServer(function(input, output) {
                 paste(filename,'pdf', sep=".")
             },
             content <- function(file) {
-                
                 owd <- setwd(tempdir())
                 on.exit(setwd(owd))
+                setwd(owd)
                 if("mdl1" %in% input$checkbox2 & ("mdl2" %in% input$checkbox2)==FALSE ){
-
                     src <- normalizePath('myreport1.Rmd')
                     file.copy(src, 'myreport1.Rmd')
                     out <- render('myreport1.Rmd',pdf_document())
                     }
                 
                 else if("mdl2" %in% input$checkbox2 & ("mdl1" %in% input$checkbox2)==FALSE ){
-                
                     src <- normalizePath('myreport2.Rmd')
                     file.copy(src, 'myreport2.Rmd')
                     out <- render('myreport2.Rmd',pdf_document())
                     }
                 else if("mdl1" %in% input$checkbox2 & "mdl2" %in% input$checkbox2 ){
-                
                     src <- normalizePath('myreport.Rmd')
                     file.copy(src, 'myreport.Rmd')
                     out <- render('myreport.Rmd',pdf_document())
                 }
                 file.rename(out, file)
+                
             }
     )
     
