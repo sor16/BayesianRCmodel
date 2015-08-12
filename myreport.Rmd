@@ -34,6 +34,12 @@ tafla$Lower=format(round(tafla$Lower,3),nsmall=3)
 tafla$Upper=format(round(tafla$Upper,3),nsmall=3)
 stargazer(tafla,type="latex",summary=FALSE, title=paste('Rating Curve from Model 1 for ',input$name),header=FALSE,digits=3,digits.extra=3)
 ```
+```{r results='asis',echo=FALSE}
+plotlist=model1()
+stargazer(plotlist$fitrctafla,type="latex",summary=FALSE, title=paste('Fit for unobserved stages in ',input$name),header=FALSE,digits=3,digits.extra=3)
+stargazer(plotlist$lowerrctafla,type="latex",summary=FALSE, title=paste('95% posterior predictive lower for unobserved stages in ',input$name),header=FALSE,digits=3,digits.extra=3)
+stargazer(plotlist$upperrctafla,type="latex",summary=FALSE, title=paste('95% posterior predictive upper for unobserved stages in ',input$name),header=FALSE,digits=3,digits.extra=3)
+```
 
 ```{r,echo=FALSE}
 if(length(plotratingcurve1())!=0)
@@ -70,6 +76,13 @@ tafla$Lower=format(round(exp(tafla$Lower),3),nsmall=3)
 tafla$Upper=format(round(exp(tafla$Upper),3),nsmall=3)
 
 stargazer(tafla,type="latex",summary=FALSE, title=paste('Rating Curve from Model 2 for ',input$name),header=FALSE,digits=3,digits.extra=3)
+```
+
+```{r results='asis',echo=FALSE}
+plotlist=model2()
+stargazer(plotlist$fitrctafla,type="latex",summary=FALSE, title=paste('Fit for unobserved stages ',input$name),header=FALSE,digits=3,digits.extra=3)
+stargazer(plotlist$lowerrctafla,type="latex",summary=FALSE, title=paste('95% posterior predictive lower for unobserved stages',input$name),header=FALSE,digits=3,digits.extra=3)
+stargazer(plotlist$upperrctafla,type="latex",summary=FALSE, title=paste('95% posterior predictive upper for unobserved stages',input$name),header=FALSE,digits=3,digits.extra=3)
 ```
 
 ```{r,echo=FALSE}
