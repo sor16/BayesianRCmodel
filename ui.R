@@ -69,33 +69,33 @@ dashboardPage(
                             title = "Controls",
                              tags$a(href = 'V316.txt', class = "btn", icon("download"), 'Download test file'),
                             br(),
-                            selectInput("select", label = "Choose country", choices = list("Iceland" = 'Iceland'), 
+                            selectInput("select", label = "Choose Country", choices = list("Iceland" = 'Iceland'), 
                                         selected = 'Iceland'),
-                            textInput("name","Name of river"),
-                            fileInput('file', 'Choose file'),
+                            textInput("name","Name of River"),
+                            fileInput('file', 'Choose File'),
                             checkboxGroupInput("checkbox", label = "Output",
                                                 choices=list("Real scale"="raun","Logarithmic scale"="log",
-                                                "Real scale residuals"="leifraun","Standardized residuals"="leiflog") ,selected = NULL),
-                            checkboxInput("checkboxA", label="Advanced settings", value=FALSE),
+                                                "Real scale residuals"="leifraun","Standardized residuals"="leiflog") ,selected = "raun"),
+                            checkboxInput("checkboxA", label="Advanced Settings", value=FALSE),
                             conditionalPanel(condition="input.checkboxA == true", 
+                                             radioButtons('clickopts',label='Use click to:',choices=list('Zoom'='zoom','Add dummypoint'='dummy','Add forcepoint'='force','Exclude point'='exclude'),selected='zoom'),
                                              sliderInput("slider", label = "Date Range", min = 1950, max = as.numeric(format(Sys.Date(), "%Y")), 
                                                         value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep=""),
                                              checkboxInput("checkboxY", label="Exclude years from a certain period", value=FALSE),
                                              conditionalPanel(condition="input.checkboxY == true", 
-                                             dateRangeInput("dates", label = "Date range")),
-                                             textInput("Wmax",label="Maximum stage (m)"),
-                                             radioButtons('clickopts',label='Use click to:',choices=list('Zoom'='zoom','Add dummypoint'='dummy','Add forcepoint'='force','Exclude point'='exclude'),selected='zoom')
-                                                                                  
+                                             dateRangeInput("dates", label = "Date Range")),
+                                             textInput("Wmax",label="Maximum Stage (m)")
+                                             
                             ),
-                            checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'), inline=TRUE),
+                            checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'),selected="mdl1", inline=TRUE),
                             actionButton('reset',label='Reset'),
                             actionButton("go", label="Submit"),
                             br(),br(),br(),
-                            downloadButton('downloadReport',label="Download as PDF"),
+                            downloadButton('downloadReport',label="Download Report"),
                             br(),br(),
-                            downloadButton('xlsxexport',label='Export tables to xlsx'),
-                            br(), br(),
-                            downloadButton('downloadword',label='Download Images')
+                            downloadButton('downloadImages',label='Download Images'),
+                            br(),br(),
+                            downloadButton('xlsxexport',label='Export Tables as xlsx')
                         )
                     )
                 )

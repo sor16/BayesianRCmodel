@@ -1,0 +1,57 @@
+---
+title: "Rating curve analysis"
+---
+
+```{r,echo=FALSE}
+if(length(plotratingcurve1())!=0)
+    if(class(plotratingcurve1()[[1]])[1]=="gg")
+        plotratingcurve1()[[1]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve1())>=2)
+    if(class(plotratingcurve1()[[2]])[1]=="gg")
+        plotratingcurve1()[[2]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve1())>=3)
+    if(class(plotratingcurve1()[[3]])[1]=="gg")
+        plotratingcurve1()[[3]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve1())>=4)
+    if(class(plotratingcurve1()[[4]])[1]=="gg")
+        plotratingcurve1()[[4]]
+```
+
+```{r,echo=FALSE}
+if(length(plotratingcurve2())!=0)
+    if(class(plotratingcurve2()[[1]])[1]=="gg")
+        plotratingcurve2()[[1]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=2)
+    if(class(plotratingcurve2()[[2]])[1]=="gg")
+        plotratingcurve2()[[2]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=3)
+    if(class(plotratingcurve2()[[3]])[1]=="gg")
+        plotratingcurve2()[[3]]
+```
+   
+   
+```{r,echo=FALSE}
+if(length(plotratingcurve2())>=4)
+    if(class(plotratingcurve2()[[4]])[1]=="gg")
+        plotratingcurve2()[[4]]
+```

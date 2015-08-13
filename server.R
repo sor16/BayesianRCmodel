@@ -16,7 +16,7 @@ ranges2 <- reactiveValues(x = NULL, y = NULL)
 dummy <- reactiveValues(Q=NULL,W=NULL)
 force <- reactiveValues(Q=NULL,W=NULL)
 shinyServer(function(input, output) {
-
+    
     data <- eventReactive(input$go,{
         if(is.null(input$file)){
             return(NULL)
@@ -478,6 +478,24 @@ shinyServer(function(input, output) {
             }
         }
     })
+    output$downloadImages <- downloadHandler(
+        filename = function() {
+            filename=gsub("\\.[^.]*$","",input$file$name)
+            paste(filename,'html', sep=".")
+        },
+        content <- function(file) {
+            owd <- setwd(tempdir())
+            on.exit(setwd(owd))
+            setwd(owd)
+            
+                src <- normalizePath('images.Rmd')
+                file.copy(src, 'images.Rmd')
+                out <- render('images.Rmd',html_document())
+                file.rename(out, file)
+        }
+        
+    )
+    
     
     output$downloadReport <- downloadHandler(
             filename = function() {
@@ -508,6 +526,9 @@ shinyServer(function(input, output) {
                 
             }
     )
+    
+    outputOptions(output, "plots1", suspendWhenHidden = FALSE)
+    outputOptions(output, "plots2", suspendWhenHidden = FALSE)
     
 })
 
