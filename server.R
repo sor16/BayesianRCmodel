@@ -24,15 +24,14 @@ shinyServer(function(input, output) {
         dummy=reactiveValuesToList(dummy)
         force=reactiveValuesToList(force)
         cleandata=clean(input$file,dummy=dummy,force=force,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,experiod=input$checkboxY,dates=input$dates, slider=input$slider)
-         vals$keeprows=rep(TRUE,nrow(cleandata$wq))
+        if(length(vals$keeprows)==0 ){
+        vals$keeprows= rep(TRUE,nrow(cleandata$wq))
+        }
         return(cleandata)
          
     })
     output$hakk <- renderPrint({
-        qvdata=data()$qvdata
-        #qvdata[with(qvdata,order(Date)),]
-        R=c('Solvi og Axel (C)')
-        R
+    vals$keeprows
     })
     
     ## MODEL1 ##  Begin
@@ -51,6 +50,7 @@ shinyServer(function(input, output) {
     
     plotratingcurve1 <- reactive({
         plotlist=model1()
+        cleandata=data()
         dummy=as.data.frame(reactiveValuesToList(dummy))
         force=as.data.frame(reactiveValuesToList(force))
         rclog=NULL
@@ -63,15 +63,15 @@ shinyServer(function(input, output) {
         if(!is.null(plotlist$qvdata)) {
             realdata=plotlist$realdata
             simdata=plotlist$simdata
-            keep=realdata[vals$keeprows, ,drop=FALSE]
-            exclude=realdata[!vals$keeprows, ,drop=FALSE]
+            keep=cleandata$qvdata_before[vals$keeprows, ,drop=FALSE]
+            exclude=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=keep,aes(exp(Q),W))+geom_path(aes(exp(fit),W))+
+                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=keep,aes(Q,W))+geom_path(aes(exp(fit),W))+
                     geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges1$x, ylim = ranges1$y)+
-                    geom_point(data=exclude,aes(exp(Q),W),fill=NA,col="black",alpha=0.75,shape=21)
+                    geom_point(data=exclude,aes(Q,W),fill=NA,col="black",alpha=0.75,shape=21)
                 if(any(dim(dummy))){
                     rcraun=rcraun+geom_point(data=dummy,aes(Q,W),fill="red",col="red")
                 }
@@ -125,6 +125,7 @@ shinyServer(function(input, output) {
     
     plotratingcurve2 <- reactive({
         plotlist=model2()
+        cleandata=data()
         dummy=as.data.frame(reactiveValuesToList(dummy))
         force=as.data.frame(reactiveValuesToList(force))
         rclog=NULL
@@ -137,15 +138,15 @@ shinyServer(function(input, output) {
             ypodata=plotlist$ypodata
             betadata=plotlist$betadata
             realdata=plotlist$realdata
-            keep=realdata[vals$keeprows, ,drop=FALSE]
-            exclude=realdata[!vals$keeprows, ,drop=FALSE]
+            keep=cleandata$qvdata_before[vals$keeprows, ,drop=FALSE]
+            exclude=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(ypodata)+theme_bw()+geom_point(data=keep,aes(exp(Q),W))+geom_path(aes(exp(fit),W))+
+                rcraun=ggplot(ypodata)+theme_bw()+geom_point(data=keep,aes(Q,W))+geom_path(aes(exp(fit),W))+
                     geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges2$x, ylim = ranges2$y)+
-                    geom_point(data=exclude,aes(exp(Q),W),fill=NA,col="black",alpha=0.75,shape=21)
+                    geom_point(data=exclude,aes(Q,W),fill=NA,col="black",alpha=0.75,shape=21)
                 if(any(dim(dummy))){
                     rcraun=rcraun+geom_point(data=dummy,aes(Q,W),fill="red",col="red")
                 }
@@ -389,8 +390,8 @@ shinyServer(function(input, output) {
     
     observeEvent(input$plot1_click,{
         if("raun"%in% input$checkbox){
-            wq=as.data.frame(data()$wq)
-            res <- nearPoints(wq, input$plot1_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
+            qvdata=as.data.frame(data()$qvdata_before)
+            res <- nearPoints(qvdata, input$plot1_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
             if(any(res$selected_) & input$clickopts=='exclude'){
                 vals$keeprows=xor(vals$keeprows,res$selected_)
             }else if(input$clickopts=='force'){
@@ -405,8 +406,8 @@ shinyServer(function(input, output) {
     })
     observeEvent(input$plot5_click,{
         if("raun"%in% input$checkbox){
-            wq=as.data.frame(data()$wq)
-            res <- nearPoints(wq, input$plot5_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
+            qvdata=data()$qvdata_before
+            res <- nearPoints(qvdata, input$plot5_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
             if(any(res$selected_) & input$clickopts=='exclude'){
                 vals$keeprows=xor(vals$keeprows,res$selected_)
             }else if(input$clickopts=='force'){
