@@ -83,7 +83,7 @@ dashboardPage(
                                                         value=c(1950,as.numeric(format(Sys.Date(), "%Y"))),sep=""),
                                              checkboxInput("checkboxY", label="Exclude years from a certain period", value=FALSE),
                                              conditionalPanel(condition="input.checkboxY == true", 
-                                             dateRangeInput("dates", label = "Date Range")),
+                                             dateRangeInput("dates", label = "Date Range",start=Sys.Date()-1,end=Sys.Date()-1)),
                                              textInput("Wmax",label="Maximum Stage (m)")
                                              
                             ),

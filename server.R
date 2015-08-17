@@ -23,7 +23,7 @@ shinyServer(function(input, output) {
             }
         dummy=reactiveValuesToList(dummy)
         force=reactiveValuesToList(force)
-        cleandata=clean(input$file,dummy=dummy,force=force,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,experiod=input$checkboxY,dates=input$dates, slider=input$slider)
+        cleandata=clean(input$file,dummy=dummy,force=force,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,exclude=input$checkboxY,excludedates=input$dates, includedates=input$slider)
         if(length(vals$keeprows)==0 ){
         vals$keeprows= rep(TRUE,nrow(cleandata$wq))
         }
@@ -31,7 +31,7 @@ shinyServer(function(input, output) {
          
     })
     output$hakk <- renderPrint({
-    vals$keeprows
+    input$dates
     })
     
     ## MODEL1 ##  Begin
