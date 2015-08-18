@@ -141,6 +141,7 @@ shinyServer(function(input, output) {
             keep=cleandata$qvdata_before[vals$keeprows, ,drop=FALSE]
             exclude=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
             
+            
             if ("raun" %in% input$checkbox){
                 rcraun=ggplot(ypodata)+theme_bw()+geom_point(data=keep,aes(Q,W))+geom_path(aes(exp(fit),W))+
                     geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
