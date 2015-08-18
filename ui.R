@@ -103,6 +103,7 @@ dashboardPage(
             
             tabItem(tabName="theory",
                     includeMarkdown("Theory.md")
+                    #includeHTML("Theory.html")
             ),
              #       includeHTML("Theory.html")),
             tabItem(tabName="code",
