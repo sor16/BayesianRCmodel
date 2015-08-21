@@ -16,6 +16,7 @@ dashboardPage(
         tabItems(
             tabItem(tabName="instructions",
                     includeMarkdown("instructions.md")
+                    #includeHTML("instructions.html")
                     
                     ),
             tabItem(tabName="app",
@@ -107,7 +108,9 @@ dashboardPage(
             ),
              #       includeHTML("Theory.html")),
             tabItem(tabName="code",
-                    includeMarkdown("Code.md")
+                     includeMarkdown("Code.md")
+                    #includeHTML("Code.html")
+                    
             )
         )    
     )

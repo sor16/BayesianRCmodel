@@ -1,71 +1,36 @@
-Code
------------------------
+---
+title: "Code"
+output: html_document
+---
+
+An R package called RCmodels was made from this project. The package includes the following functions written to run the models:
    
-   
+* Both models   
+    + clean() - Cleans the file input data. When file is txt it cleans the data in accordance to the from the Icelandic Met office. If you have other types of data the clean function also cleans a custom xlsx file with columns Date, Time,Quality,W,Q in this order.
+    + priors() - Defines the prior parameters for a given country. If you want to add your country to use the model please contact us. Contact information: sor16@hi.is and aoj8@hi.is
+* Model 1   
+    + plotmodel1() - makes use of clean() and model1BH() to plot a rating curve calculated with model 1
+        + model1BH() - Makes use of Densevalm11() to determine the fit and confidence intervals of a rating curve
+            + Densevalm11() - Evaluates the log density p for given theta
     
+* Model 2   
+    + plotmodel2() - makes use of clean() and model2BH() to plot a rating curve calculated with model 2
+    + model2BH() - Makes use of Densevalm22() to determine the fit and confidence intervals of a rating curve. It uses predict_u() to calculate predictive values and predictive confidence intervals for the unobserved stages of a rating curve. 
+    + Densevalm22() - Evaluates the log density p for given theta
+    + Adist() - Extracts unique elements of water level measurements and creates a distance matrix from them
+    + B_splines - Test the B-splines in a rating curve
+    + W_unobserved() - Returns the stages needed to make an equally spaced grid  
+    + predict_u() - Calculates predictive values for unobserved stages
+
+All of the functions written to run the models are available for everyone [here](https://github.com/sor16/RCmodels).      
+To download the package RCmodels, type the following in your R console:           
+
 
 ```r
-library(ggplot2)
-library(RCmodels)
-library(Cairo)
-setwd("C:/Users/aoj8/Documents/Model1Git/BayesianRCmodel/www")
-qvdata=read.table("V508.txt",skip=3,sep="|",dec=",")
-qvdata=qvdata[,c(2:4,7)]
-qvdata[,3:4]=qvdata[,4:3]
-names(qvdata)=c("Date","Time","W","Q")
-qvdata$Time=as.character(qvdata$Time)
-qvdata$Date=as.Date(gsub("\\.","-",qvdata$Date),"%d-%m-%Y")
-qvdata=qvdata[with(qvdata,order(W)),]
-wq=as.matrix(qvdata[,3:4])
-RC=priors("Iceland")
-                    
-RC$y=as.matrix(log(wq[,2]));
-RC$w=0.01*wq[,1]; #to meters 
-RC$w_tild=RC$w-min(RC$w);
-RC$n=length(RC$y);
+    #if not yet installed
+    install.packages('devtools')
 
-
-Dens <- function(th){ Densevalm11(th,RC)$pmin}
-Densmin=optim(par=c(0,0),Dens,hessian=TRUE)
-t_m=as.matrix(Densmin$par)
-H=Densmin$hessian
-
-
-l_m=as.matrix(log(RC$w_tild+exp(t_m[1,]))) 
-
-X_m=cbind(matrix(1,nrow(l_m),ncol(l_m)),l_m) 
-
-L=t(chol(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))) 
-
-mu=solve(t(L),(solve(L,(RC$Sinvmu+t(X_m)%*%RC$y/exp(t_m[2,])))))
-
-v_temp=X_m%*%solve(RC$Sig_xinv+t(X_m)%*%X_m/exp(t_m[2,]))%*%t(X_m) 
-
-varappr=mean(as.matrix(diag(v_temp)+exp(t_m[2,])))
-
-RC$fit=X_m%*%mu
-
-RC$confinterval= cbind(X_m%*%mu+qnorm(0.025,0,sqrt(varappr)),X_m%*%mu+qnorm(0.975,0,sqrt(varappr))) 
-
-data=data.frame(W=RC$w,Q=RC$y)
-data$l_m=l_m
-data$fit=RC$fit
-simdata=data.frame(l_m=seq(min(data$l_m),max(data$l_m),length.out=1000))
-c_hat=min(data$W)-exp(t_m[1,]) 
-simdata$Wfit = exp(simdata$l_m)+c_hat
-simdata$fit=mu[1,]+mu[2,]*simdata$l_m
-data$upper=RC$confinterval[,2]
-data$lower=RC$confinterval[,1]
-simdata$upper=simdata$fit+qnorm(0.975,0,sqrt(varappr))
-simdata$lower=simdata$fit+qnorm(0.025,0,sqrt(varappr))
+    devtools::install_github('sor16/RCmodels'). 
 ```
-   
-   
-   
-Here is a rating curve based on Bayesian point estimates of the parameters in power law.
-   
-    
-  
-![plot of chunk CairoPlot](figure/CairoPlot-1.png) 
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+          
+To learn about input arguments into the functions, type ? in front of the function name.
