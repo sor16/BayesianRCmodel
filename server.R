@@ -98,8 +98,14 @@ shinyServer(function(input, output) {
                 outputlist$rcleifraun=rcleifraun
             } 
             if("leiflog" %in% input$checkbox){
+                max=max(abs(realdata$residlog))
+                if(max>4){
+                    ylim=c(-(max+0.2),max+0.2)
+                }else{
+                    ylim=c(-4,4)
+                }
                 rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+
+                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(ylim)+
                     ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
                 
@@ -172,8 +178,14 @@ shinyServer(function(input, output) {
                 outputlist$rcleifraun=rcleifraun
             } 
             if("leiflog" %in% input$checkbox){
+                max=max(abs(realdata$residlog))
+                if(max>4){
+                    ylim=c(-(max+0.2),max+0.2)
+                }else{
+                    ylim=c(-4,4)
+                }
                 rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
-                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+
+                    geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(ylim)+
                     ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
                 
