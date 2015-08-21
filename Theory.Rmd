@@ -1,7 +1,8 @@
 ---
 output: 
  html_document:
-  mathjax: "//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+  mathjax: local
+  self_contained: false
 ---
 ##Bayesian Rating Curves##
 Birgir Hrafnkelsson$^{1}$, Sölvi Rögnvaldsson$^{1}$, Axel Jansson$^{1}$ Helgi Sigurdarson$^{2}$ and Sigurdur M. Gardarsson$^{3}$   
