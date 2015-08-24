@@ -4,7 +4,7 @@
 
 # Bayesian Rating Curves
 
-Birgir Hrafnkelsson$^{1}$, Solvi Rognvaldsson$^{1}$, Axel Orn Jansson$^{1}$ Helgi Sigurdarson$^{2}$ and Sigurdur M. Gardarsson$^{3}$ 
+Birgir Hrafnkelsson$^{1}$,Solvi Rognvaldsson$^{1}$,Axel Orn Jansson$^{1}$ Helgi Sigurdarson$^{2}$ and Sigurdur M. Gardarsson$^{3}$   
 $^{1}$ Faculty of Physical Sciences, School of Engineering and Natural Sciences, The University of Iceland, Iceland $^{2}$ Faculty of Industrial Engineering, Mechanical Engineering and Computer Science, School of Engineering and Natural Sciences, The University of Iceland, Iceland   
 $^{3}$ Faculty of Environmental and Civil Engineering, School of Engineering and Natural Sciences, The University of Iceland, Iceland 
 

@@ -1,21 +1,17 @@
-<!---
-output: 
- html_document:
-  mathjax: local
-  self_contained: false
---->
-<script type="text/javascript" src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
-##Bayesian Rating Curves##
-Birgir Hrafnkelsson$^{1}$, Sölvi Rögnvaldsson$^{1}$, Axel Jansson$^{1}$ Helgi Sigurdarson$^{2}$ and Sigurdur M. Gardarsson$^{3}$   
-$^1$Faculty of Physical Sciences, School of Engineering and Natural Sciences, The University of Iceland, Iceland   
-$^2$Faculty of Industrial Engineering, Mechanical Engineering and Computer Science, School of Engineering and Natural Sciences, The University of Iceland, Iceland   
-$^3$Faculty of Environmental and Civil Engineering, School of Engineering and Natural Sciences, The University of Iceland, Iceland 
+
+# Bayesian Rating Curves
+
+Birgir Hrafnkelsson$^{1}$,Solvi Rognvaldsson$^{1}$,Axel Orn Jansson$^{1}$ Helgi Sigurdarson$^{2}$ and Sigurdur M. Gardarsson$^{3}$   
+$^{1}$ Faculty of Physical Sciences, School of Engineering and Natural Sciences, The University of Iceland, Iceland $^{2}$ Faculty of Industrial Engineering, Mechanical Engineering and Computer Science, School of Engineering and Natural Sciences, The University of Iceland, Iceland   
+$^{3}$ Faculty of Environmental and Civil Engineering, School of Engineering and Natural Sciences, The University of Iceland, Iceland 
 
    
 A rating curve is a model that describes the relationship between water stage and discharge in a river. The rating curve is estimated from paired observations of stage and discharge. The rating curve is used to predict discharge given stage. This is the main practical usage of rating curves as stage is substantially easier to directly observe than discharge. Two types of rating curves are implemented here. The first type is the power-law model which is commonly assumed in hydraulic practice. It is given by
 
-$$Q = a(h − c)^b$$ (1)
+$$Q=a(h-c)^b$$ (1)
 
 where $Q$ is discharge, $h$ is stage, $a$, $b$ and $c$ are unknown constants, see e.g., Venetis (1970), Clarke (1999) and Clarke et al. (2000).
 The second type of rating curves is the generalized power-law model. Its construc- tion is based on the hydraulics of open channel flow given the formulas of Chézy and Manning which are of the form
@@ -24,7 +20,7 @@ $$Q = KR^{x}AS^{1/2}$$ (2)
 
 where $K$ is a constant, $R$ is the hydraulic radius, $x$ is constant, $A$ is the cross section area, $S$ is the slope of the channel, further, $R = A/P$ where $P$ is the wetted perimeter. According to Chézy $x = 1/2$ while Manning claimed that $x = 2/3$. The form of the generalised rating curve is
 
-$$Q = a(h − c)^{f(h)}$$ (3)
+$$Q = a(h-c)^{f(h)}$$ (3)
 
 where a and c are constants and $f(h)$ is a function of h and referred to as the generalised power-law exponent. The relationship between (2) and (3) can be found by equating these two equations. In particular, the form of $f(h)$ can be derived, namely,
 

@@ -1,8 +1,4 @@
----
-title: "Code"
-output: html_document
----
-
+# Code
 An R package called RCmodels was made from this project. The package includes the following functions written to run the models:
    
 * Both models   
