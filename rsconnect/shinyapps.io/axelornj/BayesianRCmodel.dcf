@@ -1,8 +1,8 @@
 name: BayesianRCmodel
 account: axelornj
 server: shinyapps.io
-bundleId: 245205
+bundleId: 253076
 url: https://axelornj.shinyapps.io/BayesianRCmodel
-when: 1440070830.14341
+when: 1440683081.277
 asMultiple: FALSE
 asStatic: FALSE

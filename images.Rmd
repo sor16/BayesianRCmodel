@@ -1,7 +1,15 @@
 ---
 title: "Rating curve analysis"
 ---
+```{r, echo=FALSE}
+if(length(plotratingcurve1())!=0){
+title='Model 1'
+}else{
+    title=''
+}
+```
 
+## `r title`
 ```{r,echo=FALSE}
 if(length(plotratingcurve1())!=0)
     if(class(plotratingcurve1()[[1]])[1]=="gg")
@@ -29,6 +37,15 @@ if(length(plotratingcurve1())>=4)
         plotratingcurve1()[[4]]
 ```
 
+```{r, echo=FALSE}
+if(length(plotratingcurve2())!=0){
+title2='Model 2'
+}else{
+    title2=''
+}
+```
+
+## `r title2`
 ```{r,echo=FALSE}
 if(length(plotratingcurve2())!=0)
     if(class(plotratingcurve2()[[1]])[1]=="gg")

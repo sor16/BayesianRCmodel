@@ -30,9 +30,6 @@ shinyServer(function(input, output) {
         return(cleandata)
          
     })
-    output$hakk <- renderPrint({
-    input$dates
-    })
     
     ## MODEL1 ##  Begin
     model1 <-eventReactive(input$go,{
@@ -83,7 +80,7 @@ shinyServer(function(input, output) {
             if("log" %in% input$checkbox){
                 rclog=ggplot(realdata)+geom_path(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_path(mapping=aes(lower,l_m),linetype="dashed")+
                     geom_path(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
-                    ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
+                    ylab(expression(log(W-hat(c))))+xlab("log(Q)")+ theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rclog=rclog
             }
@@ -225,7 +222,14 @@ shinyServer(function(input, output) {
     
     output$plot1<-renderPlot({
         if(length(plotratingcurve1())!=0)
+#             sessionkeepermodel1=reactiveValuesToList(sessionkeepermodel1)
+#             if(counter$i<length(sessionkeepermodel1)){
+#             counter=reactiveValuesToList(counter)
+#             i=as.character(counter$i)
+#             sessionkeepermodel1[[i]][[1]]
+#         }else{
             plotratingcurve1()[[1]]
+        # }
     },height=400,width=600)
     output$plot2<-renderPlot({
         if(length(plotratingcurve1()) >= 2)
@@ -433,6 +437,33 @@ shinyServer(function(input, output) {
         }
         
     })
+#      counter=reactiveValues(i=1)
+#     sessionkeepermodel1=reactiveValues()
+#     sessionkeepermodel2=reactiveValues()
+#     
+#      observeEvent(input$go,{
+#          i=reactiveValuesToList(counter)
+#          i=as.character(counter$i)
+#          # if(is.null(sessionkeepermodel1[[i]])){
+#          sessionkeepermodel1[[i]]=plotratingcurve1()
+#          #}
+#          counter$i=counter$i+1
+#          
+#      })
+#      observeEvent(input$go,{
+#          
+#          counter=reactiveValuesToList(counter)
+#          i=as.character(counter$i)
+#          sessionkeepermodel2[[i]]=plotratingcurve2()
+#          
+#      })
+#     observeEvent(input$forward,{
+#         counter$i=counter$i+1
+#         
+#     })
+#     observeEvent(input$back,{
+#         counter$i=counter$i-1
+#     })
     observeEvent(input$reset,{
         wq=data()$wq
         vals$keeprows=rep(TRUE,nrow(wq))

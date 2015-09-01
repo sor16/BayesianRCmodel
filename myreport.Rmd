@@ -23,9 +23,9 @@ predict=1.96*sqrt(varappr)
 
 Formula for rating curve: $$\ \hat{Q}(W) = a \cdot (W - \hat{c})^b = `r a` \cdot (W - `r c_hat` )^{ `r b`}$$
     
-Formula for lower predictive: $$\ \hat{Q}_{lower}(W) = \hat{Q}(W) \cdot {(e^{1.96})}^ {-\sigma_{\epsilon}} = \hat{Q}(W) \cdot {(e^{1.96})}^ {`r -varappr`} = \hat{Q}(W) \cdot `r exp(-predict)`$$
+Formula for 95 % lower predictive: $$\ \hat{Q}_{lower}(W) = \hat{Q}(W) \cdot {(e^{1.96})}^ {-\sigma_{\epsilon}} = \hat{Q}(W) \cdot {(e^{1.96})}^ {`r -varappr`} = \hat{Q}(W) \cdot `r exp(-predict)`$$
 
-Formula for upper predictive: $$\ \hat{Q}_{lower}(W) = \hat{Q}(W) \cdot {(e^{1.96})}^ {\sigma_{\epsilon}} = \hat{Q}(W) \cdot {(e^{1.96})}^ {`r varappr`} = \hat{Q}(W) \cdot `r exp(predict)`$$
+Formula for 95 % upper predictive: $$\ \hat{Q}_{lower}(W) = \hat{Q}(W) \cdot {(e^{1.96})}^ {\sigma_{\epsilon}} = \hat{Q}(W) \cdot {(e^{1.96})}^ {`r varappr`} = \hat{Q}(W) \cdot `r exp(predict)`$$
 
 ```{r results='asis',echo=FALSE}
 plotlist=model1()

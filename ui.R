@@ -5,8 +5,7 @@ dashboardPage(
     dashboardSidebar(
         sidebarMenu(
         menuItem("Instructions", tabName = "instructions", icon = icon("info-circle")),
-        menuItem("App", icon = icon("line-chart"), tabName = "app",
-                 badgeLabel = "new", badgeColor = "green"),
+        menuItem("App", icon = icon("line-chart"), tabName = "app"),
         menuItem("Theory", tabName = "theory", icon = icon("book")),
         menuItem("Code", tabName = "code", icon = icon("code"))
         )
@@ -23,8 +22,8 @@ dashboardPage(
                     column(width=8,
                            tabBox(
                                id = "tabset1",width=NULL,
-                                tabPanel('Plots 1',uiOutput('plots1')),
-                                tabPanel('Numeric summary 1',
+                                tabPanel('Plots Model 1',uiOutput('plots1')),
+                                tabPanel('Tables Model 1',
                                          h4("Data fitted"),
                                          htmlOutput('tafla1'),
                                          h4("Fit for unobserved stages"),
@@ -32,11 +31,12 @@ dashboardPage(
                                          h4("95% posterior predictive lower for unobserved stages"),
                                          htmlOutput('lowerrctafla1'),
                                          h4("95% posterior predictive upper for unobserved stages"),
-                                         htmlOutput("upperrctafla1"),
-                                         textOutput('hakk')
+                                         htmlOutput("upperrctafla1")
+                                         
+                                        
                                 ),
-                                tabPanel('Plots 2',uiOutput('plots2')),
-                                tabPanel('Numeric summary 2',
+                                tabPanel('Plots Model 2',uiOutput('plots2')),
+                                tabPanel('Tables Model 2',
                                          h4("Data fitted"),
                                          htmlOutput('tafla2'),
                                          h4("Fit for unobserved stages"),
@@ -90,6 +90,8 @@ dashboardPage(
                             checkboxGroupInput("checkbox2", label = "Models",choices=list("Model1"='mdl1', "Model2"='mdl2'),selected="mdl1", inline=TRUE),
                             actionButton('reset',label='Reset'),
                             actionButton("go", label="Submit"),
+#                             actionButton("back", label="Back"),
+#                             actionButton("forward", label="Forward"),
                             br(),br(),br(),
                             downloadButton('downloadReport',label="Download Report"),
                             br(),br(),
