@@ -7,11 +7,11 @@ output: pdf_document
 Sys.setlocale("LC_ALL","is_IS")
 ```
 
-```{r echo=FALSE, include=FALSE}
+```{r echo=FALSE, include=FALSE,warning=FALSE}
 library(knitr,quietly=TRUE)
 ```  
 
-```{r results='asis',echo=FALSE}
+```{r results='asis',echo=FALSE,warning=FALSE}
 plotlist=model2()
 tafla=plotlist$tafla
 tafla[,"Q fit"]=format(round(tafla[,"Q fit"],3),nsmall=3)
@@ -19,48 +19,47 @@ tafla$Lower=format(round(tafla$Lower,3),nsmall=3)
 tafla$Upper=format(round(tafla$Upper,3),nsmall=3)
 
 kable(plotlist$tafla,output=FALSE,caption=paste('Rating Curve from Model 2 for ',input$name))
-#stargazer(tafla,type="latex",summary=FALSE, title=paste('Rating Curve from Model 2 for ',input$name),header=FALSE,digits=3,digits.extra=3)
+
 ```
 
-```{r results='asis',echo=FALSE}
+```{r results='asis',echo=FALSE,warning=FALSE}
 plotlist=model2()
 kable(plotlist$fitrctafla,output=FALSE, caption=paste('Fit for unobserved stages in',input$name))
-#stargazer(plotlist$fitrctafla,type="latex",summary=FALSE, title=paste('Fit for unobserved stages in',input$name),header=FALSE,rownames = FALSE)
+
 ```
 
-```{r results='asis',echo=FALSE}
+```{r results='asis',echo=FALSE,warning=FALSE}
 plotlist=model2()
 kable(plotlist$lowerrctafla,output=FALSE,caption=paste('95% posterior predictive lower for unobserved stages in',input$name))
-#stargazer(plotlist$lowerrctafla,type="latex",summary=FALSE, title=paste('95% posterior predictive lower for unobserved stages in',input$name),header=FALSE,rownames = FALSE)
+
 ```
 
-```{r results='asis',echo=FALSE}
+```{r results='asis',echo=FALSE,warning=FALSE}
 plotlist=model2()
 kable(plotlist$upperrctafla,output=FALSE,caption=paste('95% posterior predictive upper for unobserved stages in',input$name),booktabs=FALSE)
-#stargazer(plotlist$upperrctafla,type="latex",summary=FALSE, title=paste('95% posterior predictive upper for unobserved stages in',input$name),header=FALSE,rownames = FALSE)
 ```
-```{r,echo=FALSE}
+```{r,echo=FALSE,warning=FALSE}
 if(length(plotratingcurve2())!=0)
     if(class(plotratingcurve2()[[1]])[1]=="gg")
         plotratingcurve2()[[1]]
 ```
    
    
-```{r,echo=FALSE}
+```{r,echo=FALSE,warning=FALSE}
 if(length(plotratingcurve2())>=2)
     if(class(plotratingcurve2()[[2]])[1]=="gg")
         plotratingcurve2()[[2]]
 ```
    
    
-```{r,echo=FALSE}
+```{r,echo=FALSE,warning=FALSE}
 if(length(plotratingcurve2())>=3)
     if(class(plotratingcurve2()[[3]])[1]=="gg")
         plotratingcurve2()[[3]]
 ```
    
    
-```{r,echo=FALSE}
+```{r,echo=FALSE,warning=FALSE}
 if(length(plotratingcurve2())>=4)
     if(class(plotratingcurve2()[[4]])[1]=="gg")
         plotratingcurve2()[[4]]
