@@ -11,6 +11,7 @@ options(shiny.usecairo=T)
 
 
 vals<-reactiveValues(keeprows=NULL)
+daterange=reactiveValues(keeprows=NULL)
 ranges1 <- reactiveValues(x = NULL, y = NULL)
 ranges2 <- reactiveValues(x = NULL, y = NULL)
 dummy <- reactiveValues(Q=NULL,W=NULL)
@@ -23,10 +24,15 @@ shinyServer(function(input, output) {
             }
         dummy=reactiveValuesToList(dummy)
         force=reactiveValuesToList(force)
-        cleandata=clean(input$file,dummy=dummy,force=force,keeprows=vals$keeprows,shiny=TRUE,advanced=input$checkboxA,exclude=input$checkboxY,excludedates=input$dates, includedates=input$slider)
+        cleandata=clean(input$file,dummy=dummy,force=force,keeprows=vals$keeprows,shiny=TRUE,advanced=input$advanced,exclude=input$exclude,excludedates=input$excludeDates, includedates=input$includeDates)
+        
         if(length(vals$keeprows)==0 ){
-        vals$keeprows= rep(TRUE,nrow(cleandata$wq))
+        vals$keeprows= rep(TRUE,nrow(cleandata$qvdata_before))
         }
+                years=as.numeric(format(cleandata$qvdata_before$Date, "%Y"))
+                includeindex=years<=input$includeDates[2] & years >= input$includeDates[1]
+                excludeindex=cleandata$qvdata_before$Date<=input$excludeDates[1] | cleandata$ qvdata_before$Date >= input$excludeDates[2]
+                daterange$keeprows=excludeindex & includeindex
         return(cleandata)
          
     })
@@ -60,15 +66,18 @@ shinyServer(function(input, output) {
         if(!is.null(plotlist$qvdata)) {
             realdata=plotlist$realdata
             simdata=plotlist$simdata
-            keep=cleandata$qvdata_before[vals$keeprows, ,drop=FALSE]
-            exclude=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
+            keeprows=vals$keeprows & daterange$keeprows
+            keep=cleandata$qvdata_before[keeprows, ,drop=FALSE]
+            excludeManual=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
+            excludeYears=cleandata$qvdata_before[!daterange$keeprows, ,drop=FALSE]
             
             if ("raun" %in% input$checkbox){
                 rcraun=ggplot(simdata)+theme_bw()+geom_point(data=keep,aes(Q,W))+geom_path(aes(exp(fit),W))+
                     geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges1$x, ylim = ranges1$y)+
-                    geom_point(data=exclude,aes(Q,W),fill=NA,col="black",alpha=0.75,shape=21)
+                    geom_point(data=excludeManual,aes(Q,W),fill=NA,col="black",alpha=0.75,shape=21)+
+                    geom_point(data=excludeYears,aes(Q,W),fill=NA,col="purple",alpha=1,shape=21)
                 if(any(dim(dummy))){
                     rcraun=rcraun+geom_point(data=dummy,aes(Q,W),fill="red",col="red")
                 }
@@ -141,8 +150,10 @@ shinyServer(function(input, output) {
             ypodata=plotlist$ypodata
             betadata=plotlist$betadata
             realdata=plotlist$realdata
-            keep=cleandata$qvdata_before[vals$keeprows, ,drop=FALSE]
-            exclude=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
+            keeprows=vals$keeprows & daterange$keeprows
+            keep=cleandata$qvdata_before[keeprows, ,drop=FALSE]
+            excludeManual=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
+            excludeYears=cleandata$qvdata_before[!daterange$keeprows, ,drop=FALSE]
             
             
             if ("raun" %in% input$checkbox){
@@ -150,7 +161,8 @@ shinyServer(function(input, output) {
                     geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
                     ggtitle(paste("Rating curve for",input$name))+ylab("W [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges2$x, ylim = ranges2$y)+
-                    geom_point(data=exclude,aes(Q,W),fill=NA,col="black",alpha=0.75,shape=21)
+                    geom_point(data=excludeManual,aes(Q,W),fill=NA,col="black",alpha=0.75,shape=21)+
+                    geom_point(data=excludeYears,aes(Q,W),fill=NA,col="purple",alpha=1,shape=21)
                 if(any(dim(dummy))){
                     rcraun=rcraun+geom_point(data=dummy,aes(Q,W),fill="red",col="red")
                 }
@@ -465,8 +477,8 @@ shinyServer(function(input, output) {
 #         counter$i=counter$i-1
 #     })
     observeEvent(input$reset,{
-        wq=data()$wq
-        vals$keeprows=rep(TRUE,nrow(wq))
+        n=nrow(data()$qvdata_before)
+        vals$keeprows=rep(TRUE,n)
         dummy$W=NULL
         dummy$Q=NULL
         force$W=NULL
