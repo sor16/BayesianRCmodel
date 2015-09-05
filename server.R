@@ -99,7 +99,7 @@ shinyServer(function(input, output) {
                 
                 rcleifraun=ggplot(realdata)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_path(aes(W,residupper),linetype="dashed")+geom_path(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
-                    ggtitle("Residual plot")+xlab("W  [m]")+theme(plot.title = element_text(vjust=2))
+                    ggtitle("Residuals")+xlab("W  [m]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
             } 
@@ -112,7 +112,7 @@ shinyServer(function(input, output) {
                 }
                 rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(ylim)+
-                    ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
+                    ylab(expression(epsilon[i]))+ggtitle("Standardized residuals")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
                 
                 
@@ -183,7 +183,7 @@ shinyServer(function(input, output) {
             if ("leifraun" %in% input$checkbox){
                 rcleifraun=ggplot(realdata)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_path(aes(W,residupper),linetype="dashed")+geom_path(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
-                    ggtitle("Residual plot")+xlab("W  [cm]")+theme(plot.title = element_text(vjust=2))
+                    ggtitle("Residuals")+xlab("W  [cm]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
             } 
@@ -196,7 +196,7 @@ shinyServer(function(input, output) {
                 }
                 rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(ylim)+
-                    ylab(expression(epsilon[i]))+ggtitle("Residual plot (log scale)")+xlab(expression(log(W-hat(c))))+
+                    ylab(expression(epsilon[i]))+ggtitle("Standardized residuals")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
                 
                 
