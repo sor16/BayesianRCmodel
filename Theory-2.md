@@ -1,3 +1,11 @@
+<script type="text/javascript">
+  window.MathJax = {
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  };
+</script>
 <script type="text/javascript"
   src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
@@ -14,11 +22,11 @@ A rating curve is a model that describes the relationship between water stage an
 $$Q=a(h-c)^b$$ (1)
 
 where $Q$ is discharge, $h$ is stage, $a$, $b$ and $c$ are unknown constants, see e.g., Venetis (1970), Clarke (1999) and Clarke et al. (2000).
-The second type of rating curves is the generalized power-law model. Its construc- tion is based on the hydraulics of open channel flow given the formulas of Chézy and Manning which are of the form
+The second type of rating curves is the generalized power-law model. Its construction is based on the hydraulics of open channel flow given the formulas of Chézy and Manning which are of the form
 
 $$Q = KR^{x}AS^{1/2}$$ (2)
 
-where $K$ is a constant, $R$ is the hydraulic radius, $x$ is constant, $A$ is the cross section area, $S$ is the slope of the channel, further, $R = A/P$ where $P$ is the wetted perimeter. According to Chézy $x = 1/2$ while Manning claimed that $x = 2/3$. The form of the generalised rating curve is
+where $K$ is a constant, $R$ is the hydraulic radius, $x$ is constant, $A$ is the cross section area, $S$ is the slope of the channel, further, $R = A/P$ where $P$ is the wetted perimeter. According to Chezy $x = 1/2$ while Manning claimed that $x = 2/3$. The form of the generalised rating curve is
 
 $$Q = a(h-c)^{f(h)}$$ (3)
 
@@ -37,4 +45,4 @@ The Bayesian generalized power-law model is presented as Bayesian hierarchical m
 
 $$log Q_i = \log a + (b + \beta(h_i)) \log(h_i -c) + \varepsilon_i, \quad i = 1,...,n,$$ (6)
 
-where $\epsilon_i$ follows a normal distribution with mean zero and variance $\sigma(h_i)_{\epsilon}^2$ that can vary with stage. Here the parameters $a$, $b$ and $c$ play a similar role as in the Bayesian power law model. The stochastic process $\beta(h)$ is assumed a priori to be a Gaussian process govern by a Matérn covariance function with smoothness parameter $\nu = 2.5$, see Matérn (1960), and it is constrained such that $\sum_{i=1}^n\beta(h_i)=0$. An efficient posterior simulation is achieved by sampling from the joint posterior density of the hyperparameters of the model, and then sampling from the conditional density the latent parameters conditioned on the hyperparameters.
+where $\epsilon_i$ follows a normal distribution with mean zero and variance $\sigma(h_i)_{\epsilon}^2$ that can vary with stage. Here the parameters $a$, $b$ and $c$ play a similar role as in the Bayesian power law model. The stochastic process $\beta(h)$ is assumed a priori to be a Gaussian process governed by a Matern covariance function with smoothness parameter $\nu = 2.5$, see Matern (1960), and it is constrained such that $\sum_{i=1}^n\beta(h_i)=0$. An efficient posterior simulation is achieved by sampling from the joint posterior density of the hyperparameters of the model, and then sampling from the conditional density the latent parameters conditioned on the hyperparameters.

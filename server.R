@@ -183,7 +183,7 @@ shinyServer(function(input, output) {
             if ("leifraun" %in% input$checkbox){
                 rcleifraun=ggplot(realdata)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_path(aes(W,residupper),linetype="dashed")+geom_path(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
-                    ggtitle("Residuals")+xlab("W  [cm]")+theme(plot.title = element_text(vjust=2))
+                    ggtitle("Residuals")+xlab("W [m]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
             } 

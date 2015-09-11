@@ -38,29 +38,9 @@ kable(plotlist$lowerrctafla,output=FALSE,caption=paste('95% posterior predictive
 plotlist=model2()
 kable(plotlist$upperrctafla,output=FALSE,caption=paste('95% posterior predictive upper for unobserved stages in',input$name),booktabs=FALSE)
 ```
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve2())!=0)
-    if(class(plotratingcurve2()[[1]])[1]=="gg")
-        plotratingcurve2()[[1]]
-```
-   
-   
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve2())>=2)
-    if(class(plotratingcurve2()[[2]])[1]=="gg")
-        plotratingcurve2()[[2]]
-```
-   
-   
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve2())>=3)
-    if(class(plotratingcurve2()[[3]])[1]=="gg")
-        plotratingcurve2()[[3]]
-```
-   
-   
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve2())>=4)
-    if(class(plotratingcurve2()[[4]])[1]=="gg")
-        plotratingcurve2()[[4]]
+
+```{r,echo=FALSE,warning=FALSE }
+for(i in 1:length(plotratingcurve2())){
+        print(plotratingcurve2()[[i]])
+}
 ```
