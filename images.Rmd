@@ -3,38 +3,17 @@ title: "Rating curve analysis"
 ---
 ```{r, echo=FALSE,warning=FALSE}
 if(length(plotratingcurve1())!=0){
-title='Model 1'
+title1='Model 1'
 }else{
-    title=''
+    title1=''
 }
 ```
 
-## `r title`
+## `r title1`
 ```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve1())!=0)
-    if(class(plotratingcurve1()[[1]])[1]=="gg")
-        plotratingcurve1()[[1]]
-```
-   
-   
-```{r,echo=FALSE}
-if(length(plotratingcurve1())>=2)
-    if(class(plotratingcurve1()[[2]])[1]=="gg")
-        plotratingcurve1()[[2]]
-```
-   
-   
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve1())>=3)
-    if(class(plotratingcurve1()[[3]])[1]=="gg")
-        plotratingcurve1()[[3]]
-```
-   
-   
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve1())>=4)
-    if(class(plotratingcurve1()[[4]])[1]=="gg")
-        plotratingcurve1()[[4]]
+for(i in 1:length(plotratingcurve1())){
+        print(plotratingcurve1()[[i]])
+}
 ```
 
 ```{r, echo=FALSE,warning=FALSE}
@@ -47,28 +26,7 @@ title2='Model 2'
 
 ## `r title2`
 ```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve2())!=0)
-    if(class(plotratingcurve2()[[1]])[1]=="gg")
-        plotratingcurve2()[[1]]
-```
-   
-   
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve2())>=2)
-    if(class(plotratingcurve2()[[2]])[1]=="gg")
-        plotratingcurve2()[[2]]
-```
-   
-   
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve2())>=3)
-    if(class(plotratingcurve2()[[3]])[1]=="gg")
-        plotratingcurve2()[[3]]
-```
-   
-   
-```{r,echo=FALSE,warning=FALSE}
-if(length(plotratingcurve2())>=4)
-    if(class(plotratingcurve2()[[4]])[1]=="gg")
-        plotratingcurve2()[[4]]
+for(i in 1:length(plotratingcurve2())){
+        print(plotratingcurve2()[[i]])
+}
 ```

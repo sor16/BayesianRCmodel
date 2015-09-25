@@ -9,15 +9,19 @@ Sys.setlocale("LC_ALL","is_IS")
 
 ```{r echo=FALSE, include=FALSE,warning=FALSE}
 library(knitr,quietly=TRUE)
+name=input$name
+if(nchar(name)==0){
+    name=gsub("\\.[^.]*$","",input$file$name)
+}
 ```  
    
       
 ```{r echo=FALSE,warning=FALSE}
-plotlist=model1()
-a=exp(plotlist$mu[1,])
-b=plotlist$mu[2,]
-c_hat=plotlist$c_hat
-varappr=mean(plotlist$varappr)
+plotlist1=model1()
+a=exp(plotlist1$mu[1,])
+b=plotlist1$mu[2,]
+c_hat=plotlist1$c_hat
+varappr=mean(plotlist1$varappr)
 predict=1.96*sqrt(varappr)
 ```
 
@@ -28,28 +32,26 @@ Formula for 95 % lower predictive: $$\ \hat{Q}_{lower}(W) = \hat{Q}(W) \cdot {(e
 Formula for 95 % upper predictive: $$\ \hat{Q}_{lower}(W) = \hat{Q}(W) \cdot {(e^{1.96})}^ {\sigma_{\epsilon}} = \hat{Q}(W) \cdot {(e^{1.96})}^ {`r varappr`} = \hat{Q}(W) \cdot `r exp(predict)`$$
 
 ```{r results='asis',echo=FALSE,warning=FALSE}
-plotlist=model1()
-tafla=plotlist$tafla
-tafla[,"Q fit"]=format(round(tafla[,"Q fit"],3),nsmall=3)
-tafla$Lower=format(round(tafla$Lower,3),nsmall=3)
-tafla$Upper=format(round(tafla$Upper,3),nsmall=3)
-kable(tafla,output=FALSE,caption=paste('Rating Curve from Model 1 for ',input$name))
+plotlist1=model1()
+TableOfData=plotlist1$TableOfData
+TableOfData[,"Q fit"]=format(TableOfData[,"Q fit"],nsmall=3)
+TableOfData$Lower=format(TableOfData$Lower,nsmall=3)
+TableOfData$Upper=format(TableOfData$Upper,nsmall=3)
+TableOfData[,"Q%"]=format(TableOfData[,"Q%"],nsmall=1)
+kable(TableOfData,output=FALSE,caption=paste('Rating curve from Model 1 for ',name))
 ```
    
    
 ```{r results='asis',echo=FALSE,warning=FALSE}
-plotlist=model1()
-kable(plotlist$fitrctafla,output=FALSE,caption=paste('Fit for unobserved stages in',input$name))
+kable(plotlist1$FitTable,row.names=FALSE,output=FALSE,caption=paste('Fit from Model 1 in',name))
 ```
    
 ```{r results='asis',echo=FALSE,warning=FALSE}
-plotlist=model1()
-kable(plotlist$lowerrctafla,output=FALSE,caption=paste('95% posterior predictive lower for unobserved stages in',input$name))
+kable(plotlist1$LowerTable,row.names=FALSE,output=FALSE,caption=paste('95% posterior predictive lower from Model 1 in',name))
 ```
 
 ```{r results='asis',echo=FALSE,warning=FALSE}
-plotlist=model1()
-kable(plotlist$upperrctafla,output=FALSE,caption=paste('95% posterior predictive upper for unobserved stages in',input$name))
+kable(plotlist1$UpperTable,row.names=FALSE,output=FALSE,caption=paste('95% posterior predictive upper from Model 1 in',name))
 ```
 
 ```{r,echo=FALSE,warning=FALSE}
@@ -59,36 +61,35 @@ for(i in 1:length(plotratingcurve1())){
 ```
 
 ```{r results='asis',echo=FALSE,warning=FALSE}
-plotlist=model2()
-tafla=plotlist$tafla
-tafla[,"Q fit"]=format(round(tafla[,"Q fit"],3),nsmall=3)
-tafla$Lower=format(round(tafla$Lower,3),nsmall=3)
-tafla$Upper=format(round(tafla$Upper,3),nsmall=3)
-
-kable(plotlist$tafla,output=FALSE,caption=paste('Rating Curve from Model 2 for ',input$name))
-
-```
-
-```{r results='asis',echo=FALSE,warning=FALSE}
-plotlist=model2()
-kable(plotlist$fitrctafla,output=FALSE, caption=paste('Fit for unobserved stages in',input$name))
+plotlist2=model2()
+TableOfData=plotlist2$TableOfData
+TableOfData[,"Q fit"]=format(TableOfData[,"Q fit"],nsmall=3)
+TableOfData$Lower=format(TableOfData$Lower,nsmall=3)
+TableOfData$Upper=format(TableOfData$Upper,nsmall=3)
+TableOfData[,"Q%"]=format(TableOfData[,"Q%"],nsmall=1)
+kable(plotlist2$TableOfData,row.names=FALSE,output=FALSE,caption=paste('Rating curve from Model 2 for ',name))
 
 ```
 
 ```{r results='asis',echo=FALSE,warning=FALSE}
-plotlist=model2()
-kable(plotlist$lowerrctafla,output=FALSE,caption=paste('95% posterior predictive lower for unobserved stages in',input$name))
+plotlist2=model2()
+kable(plotlist2$FitTable,row.names=FALSE,output=FALSE, caption=paste('Fit from Model 2 in',name))
 
 ```
 
 ```{r results='asis',echo=FALSE,warning=FALSE}
-plotlist=model2()
-kable(plotlist$upperrctafla,output=FALSE,caption=paste('95% posterior predictive upper for unobserved stages in',input$name),booktabs=FALSE)
+plotlist2=model2()
+kable(plotlist2$LowerTable,row.names=FALSE,output=FALSE,caption=paste('95% posterior predictive lower from Model 2 in',name))
+
+```
+
+```{r results='asis',echo=FALSE,warning=FALSE}
+plotlist2=model2()
+kable(plotlist2$UpperTable,row.names=FALSE,output=FALSE,caption=paste('95% posterior predictive upper from Model 2 in',name),booktabs=FALSE)
 ```
 
 ```{r,echo=FALSE,warning=FALSE}
 for(i in 1:length(plotratingcurve2())){
         print(plotratingcurve2()[[i]])
-}
 }
 ```

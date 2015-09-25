@@ -25,26 +25,26 @@ dashboardPage(
                                 tabPanel('Plots Model 1',uiOutput('plots1')),
                                 tabPanel('Tables Model 1',
                                          h4("Data fitted"),
-                                         htmlOutput('tafla1'),
+                                         htmlOutput('TableOfData1'),
                                          h4("Fit for unobserved stages"),
-                                         htmlOutput('fitrctafla1'),
+                                         htmlOutput('FitTable1'),
                                          h4("95% posterior predictive lower for unobserved stages"),
-                                         htmlOutput('lowerrctafla1'),
+                                         htmlOutput('LowerTable1'),
                                          h4("95% posterior predictive upper for unobserved stages"),
-                                         htmlOutput("upperrctafla1")
+                                         htmlOutput("UpperTable1")
                                          
                                         
                                 ),
                                 tabPanel('Plots Model 2',uiOutput('plots2')),
                                 tabPanel('Tables Model 2',
                                          h4("Data fitted"),
-                                         htmlOutput('tafla2'),
+                                         htmlOutput('TableOfData2'),
                                          h4("Fit for unobserved stages"),
-                                         htmlOutput('fitrctafla2'),
+                                         htmlOutput('FitTable2'),
                                          h4("95% posterior predictive lower for unobserved stages"),
-                                         htmlOutput('lowerrctafla2'),
+                                         htmlOutput('LowerTable2'),
                                          h4("95% posterior predictive upper for unobserved stages"),
-                                         htmlOutput('upperrctafla2')
+                                         htmlOutput('UpperTable2')
                                          
                                 )
                             ),
@@ -67,7 +67,10 @@ dashboardPage(
                         box(status="primary", width = NULL,
                             #background="light-blue",
                             title = "Controls",
-                             tags$a(href = 'V316.txt', class = "btn", icon("download"), 'Download test file'),
+                            tags$a(href = 'V316.txt', target="_blank",class = "btn", icon("download"), 'Download txt test file'),
+                            br(),
+                            tags$a(href = 'exceldata.xlsx', class = "btn", icon("download"), 'Download xlsx test file'),
+                            br(),
                             br(),
                             selectInput("select", label = "Choose Country", choices = list("Iceland" = 'Iceland'), 
                                         selected = 'Iceland'),
@@ -105,10 +108,8 @@ dashboardPage(
             
             tabItem(tabName="theory",
                     includeMarkdown("Theory-2.md")
-                    #includeMarkdown("Theory.Rmd")
-                    #includeHTML("Theory.html")
+                
             ),
-             #       includeHTML("Theory.html")),
             tabItem(tabName="code",
                     includeMarkdown("Code.md")
             )

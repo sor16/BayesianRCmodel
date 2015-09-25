@@ -1,16 +1,13 @@
-<script type="text/javascript">
-  window.MathJax = {
-    tex2jax: {
-      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-      processEscapes: true
-    }
-  };
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
 </script>
 <script type="text/javascript"
-  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
 
-# Bayesian Rating Curves
+# Bayesian Generalized Rating Curves
 
 Birgir Hrafnkelsson$^{1}$,Solvi Rognvaldsson$^{1}$,Axel Orn Jansson$^{1}$ Helgi Sigurdarson$^{2}$ and Sigurdur M. Gardarsson$^{3}$   
 $^{1}$ Faculty of Physical Sciences, School of Engineering and Natural Sciences, The University of Iceland, Iceland $^{2}$ Faculty of Industrial Engineering, Mechanical Engineering and Computer Science, School of Engineering and Natural Sciences, The University of Iceland, Iceland   
@@ -46,3 +43,4 @@ The Bayesian generalized power-law model is presented as Bayesian hierarchical m
 $$log Q_i = \log a + (b + \beta(h_i)) \log(h_i -c) + \varepsilon_i, \quad i = 1,...,n,$$ (6)
 
 where $\epsilon_i$ follows a normal distribution with mean zero and variance $\sigma(h_i)_{\epsilon}^2$ that can vary with stage. Here the parameters $a$, $b$ and $c$ play a similar role as in the Bayesian power law model. The stochastic process $\beta(h)$ is assumed a priori to be a Gaussian process governed by a Matern covariance function with smoothness parameter $\nu = 2.5$, see Matern (1960), and it is constrained such that $\sum_{i=1}^n\beta(h_i)=0$. An efficient posterior simulation is achieved by sampling from the joint posterior density of the hyperparameters of the model, and then sampling from the conditional density the latent parameters conditioned on the hyperparameters.
+

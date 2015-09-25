@@ -27,11 +27,11 @@ shinyServer(function(input, output) {
         cleandata=clean(input$file,dummy=dummy,force=force,keeprows=vals$keeprows,shiny=TRUE,advanced=input$advanced,exclude=input$exclude,excludedates=input$excludeDates, includedates=input$includeDates)
         
         if(length(vals$keeprows)==0 ){
-        vals$keeprows= rep(TRUE,nrow(cleandata$qvdata_before))
+        vals$keeprows= rep(TRUE,nrow(cleandata$observedData_before))
         }
-                years=as.numeric(format(cleandata$qvdata_before$Date, "%Y"))
+                years=as.numeric(format(cleandata$observedData_before$Date, "%Y"))
                 includeindex=years<=input$includeDates[2] & years >= input$includeDates[1]
-                excludeindex=cleandata$qvdata_before$Date<=input$excludeDates[1] | cleandata$ qvdata_before$Date >= input$excludeDates[2]
+                excludeindex=cleandata$observedData_before$Date<=input$excludeDates[1] | cleandata$ observedData_before$Date >= input$excludeDates[2]
                 daterange$keeprows=excludeindex & includeindex
         return(cleandata)
          
@@ -60,21 +60,23 @@ shinyServer(function(input, output) {
         rcraun=NULL
         rcleiflog=NULL
         rcleifraun=NULL
-        tafla=NULL
-        rctafla=NULL
         outputlist=list()
-        if(!is.null(plotlist$qvdata)) {
-            realdata=plotlist$realdata
-            simdata=plotlist$simdata
+        if(!is.null(plotlist$observedData)) {
+            observedPrediction=plotlist$observedPrediction
+            completePrediction=plotlist$completePrediction
             keeprows=vals$keeprows & daterange$keeprows
-            keep=cleandata$qvdata_before[keeprows, ,drop=FALSE]
-            excludeManual=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
-            excludeYears=cleandata$qvdata_before[!daterange$keeprows, ,drop=FALSE]
+            keep=cleandata$observedData_before[keeprows, ,drop=FALSE]
+            excludeManual=cleandata$observedData_before[!vals$keeprows, ,drop=FALSE]
+            excludeYears=cleandata$observedData_before[!daterange$keeprows, ,drop=FALSE]
+            name=input$name
+            if(nchar(name)==0){
+                name=gsub("\\.[^.]*$","",input$file$name)
+            }
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(simdata)+theme_bw()+geom_point(data=keep,aes(Q,W))+geom_path(aes(exp(fit),W))+
+                rcraun=ggplot(completePrediction)+theme_bw()+geom_point(data=keep,aes(Q,W))+geom_path(aes(exp(fit),W))+
                     geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
-                    ggtitle(paste("Rating curve for",input$name))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
+                    ggtitle(paste("Rating curve for ", name," Model 1"))+ylab("W  [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges1$x, ylim = ranges1$y)+
                     geom_point(data=excludeManual,aes(Q,W),fill=NA,col="black",alpha=0.75,shape=21)+
                     geom_point(data=excludeYears,aes(Q,W),fill=NA,col="purple",alpha=1,shape=21)
@@ -87,8 +89,8 @@ shinyServer(function(input, output) {
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
-                rclog=ggplot(realdata)+geom_path(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_path(mapping=aes(lower,l_m),linetype="dashed")+
-                    geom_path(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
+                rclog=ggplot(observedPrediction)+geom_path(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_path(mapping=aes(lower,l_m),linetype="dashed")+
+                    geom_path(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for ", name," Model 1 (logscale)"))+
                     ylab(expression(log(W-hat(c))))+xlab("log(Q)")+ theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rclog=rclog
@@ -97,20 +99,20 @@ shinyServer(function(input, output) {
             
             if ("leifraun" %in% input$checkbox){
                 
-                rcleifraun=ggplot(realdata)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                rcleifraun=ggplot(observedPrediction)+geom_point(aes(W,residuals),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_path(aes(W,residupper),linetype="dashed")+geom_path(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
                     ggtitle("Residuals")+xlab("W  [m]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
             } 
             if("leiflog" %in% input$checkbox){
-                max=max(abs(realdata$residlog))
+                max=max(abs(observedPrediction$standardResiduals))
                 if(max>4){
                     ylim=c(-(max+0.2),max+0.2)
                 }else{
                     ylim=c(-4,4)
                 }
-                rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                rcleiflog=ggplot(observedPrediction)+geom_point(aes(l_m,standardResiduals),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(ylim)+
                     ylab(expression(epsilon[i]))+ggtitle("Standardized residuals")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
@@ -144,22 +146,27 @@ shinyServer(function(input, output) {
         rcraun=NULL
         rcleiflog=NULL
         rcleifraun=NULL
-        tafla=NULL
+        TableOfData=NULL
         outputlist=list()
-        if(!is.null(plotlist$qvdata)) {
-            ypodata=plotlist$ypodata
-            betadata=plotlist$betadata
-            realdata=plotlist$realdata
+        if(!is.null(plotlist$observedData)) {
+            completePrediction=plotlist$completePrediction
+            betaData=plotlist$betaData
+            observedPrediction=plotlist$observedPrediction
             keeprows=vals$keeprows & daterange$keeprows
-            keep=cleandata$qvdata_before[keeprows, ,drop=FALSE]
-            excludeManual=cleandata$qvdata_before[!vals$keeprows, ,drop=FALSE]
-            excludeYears=cleandata$qvdata_before[!daterange$keeprows, ,drop=FALSE]
+            keep=cleandata$observedData_before[keeprows, ,drop=FALSE]
+            excludeManual=cleandata$observedData_before[!vals$keeprows, ,drop=FALSE]
+            excludeYears=cleandata$observedData_before[!daterange$keeprows, ,drop=FALSE]
+            filename=input$name
+            name=input$name
+            if(nchar(name)==0){
+                name=gsub("\\.[^.]*$","",input$file$name)
+            }
             
             
             if ("raun" %in% input$checkbox){
-                rcraun=ggplot(ypodata)+theme_bw()+geom_point(data=keep,aes(Q,W))+geom_path(aes(exp(fit),W))+
+                rcraun=ggplot(completePrediction)+theme_bw()+geom_point(data=keep,aes(Q,W))+geom_path(aes(exp(fit),W))+
                     geom_path(aes(exp(lower),W),linetype="dashed")+geom_path(aes(exp(upper),W),linetype="dashed")+
-                    ggtitle(paste("Rating curve for",input$name))+ylab("W [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
+                    ggtitle(paste("Rating curve for ", name," Model 2"))+ylab("W [m]")+xlab(expression(paste("Q  [",m^3,'/s]',sep='')))+
                     theme(plot.title = element_text(vjust=2))+coord_cartesian(xlim = ranges2$x, ylim = ranges2$y)+
                     geom_point(data=excludeManual,aes(Q,W),fill=NA,col="black",alpha=0.75,shape=21)+
                     geom_point(data=excludeYears,aes(Q,W),fill=NA,col="purple",alpha=1,shape=21)
@@ -172,8 +179,8 @@ shinyServer(function(input, output) {
                 outputlist$rcraun=rcraun
             }
             if("log" %in% input$checkbox){
-                rclog=ggplot(realdata)+geom_path(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_path(mapping=aes(lower,l_m),linetype="dashed")+
-                    geom_path(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",input$name,"(log scale)"))+
+                rclog=ggplot(observedPrediction)+geom_path(mapping=aes(fit,l_m))+theme_bw()+geom_point(mapping=aes(Q,l_m))+geom_path(mapping=aes(lower,l_m),linetype="dashed")+
+                    geom_path(mapping=aes(upper,l_m),linetype="dashed")+ggtitle(paste("Rating curve for",name," Model 2 (log scale)"))+
                     ylab(expression(log(W-hat(c))))+xlab("log(Q)")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rclog=rclog
@@ -181,20 +188,20 @@ shinyServer(function(input, output) {
             
             
             if ("leifraun" %in% input$checkbox){
-                rcleifraun=ggplot(realdata)+geom_point(aes(W,residraun),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                rcleifraun=ggplot(observedPrediction)+geom_point(aes(W,residuals),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_path(aes(W,residupper),linetype="dashed")+geom_path(aes(W,residlower),linetype="dashed")+ylab(expression(paste("Q - ",hat(Q) ,"  [",m^3,'/s]',sep='')))+
                     ggtitle("Residuals")+xlab("W [m]")+theme(plot.title = element_text(vjust=2))
                 
                 outputlist$rcleifraun=rcleifraun
             } 
             if("leiflog" %in% input$checkbox){
-                max=max(abs(realdata$residlog))
+                max=max(abs(observedPrediction$standardResiduals))
                 if(max>4){
                     ylim=c(-(max+0.2),max+0.2)
                 }else{
                     ylim=c(-4,4)
                 }
-                rcleiflog=ggplot(realdata)+geom_point(aes(l_m,residlog),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
+                rcleiflog=ggplot(observedPrediction)+geom_point(aes(l_m,standardResiduals),color="red")+theme_bw()+geom_abline(intercept = 0, slope = 0)+
                     geom_abline(intercept = 2, slope = 0,linetype="dashed")+geom_abline(intercept = -2, slope = 0,linetype="dashed")+ylim(ylim)+
                     ylab(expression(epsilon[i]))+ggtitle("Standardized residuals")+xlab(expression(log(W-hat(c))))+
                     theme(plot.title = element_text(vjust=2))
@@ -202,7 +209,7 @@ shinyServer(function(input, output) {
                 
                 outputlist$rcleiflog=rcleiflog
             }
-            smoothbeta=ggplot(data=betadata)+geom_path(aes(W,fit))+
+            smoothbeta=ggplot(data=betaData)+geom_path(aes(W,fit))+
                 geom_path(aes(W,lower),linetype="dashed")+geom_path(aes(W,upper),linetype="dashed")+
                 ylab(expression(b+beta(W)))+ggtitle("b parameter as a function of stage W")+xlab("W [m]")+
                 theme(plot.title = element_text(vjust=2))+theme_bw()
@@ -255,9 +262,9 @@ shinyServer(function(input, output) {
         if(length(plotratingcurve1())>=4)
             plotratingcurve1()[[4]]     
     },height=400,width=600)
-    output$tafla1 <- renderGvis({
+    output$TableOfData1 <- renderGvis({
         if(!is.null(model1())){
-            table=model1()$tafla
+            table=model1()$TableOfData
             gvisTable(table,options=list(
                                 page='enable',
                                 pageSize=30,
@@ -267,10 +274,10 @@ shinyServer(function(input, output) {
         
     })
   
-    output$fitrctafla1 <- renderGvis({
+    output$FitTable1 <- renderGvis({
         if(!is.null(model1())){
-            fitrctafla1=as.data.frame(model1()$fitrctafla)
-            gvisTable(fitrctafla1,options=list(
+            FitTable1=as.data.frame(model1()$FitTable)
+            gvisTable(FitTable1,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
@@ -278,10 +285,10 @@ shinyServer(function(input, output) {
         }
         
     })
-    output$lowerrctafla1 <- renderGvis({
+    output$LowerTable1 <- renderGvis({
         if(!is.null(model1())){
-            lowerrctafla1=as.data.frame(model1()$lowerrctafla)
-            gvisTable(lowerrctafla1,options=list(
+            LowerTable1=as.data.frame(model1()$LowerTable)
+            gvisTable(LowerTable1,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
@@ -289,10 +296,10 @@ shinyServer(function(input, output) {
         }
         
     })
-    output$upperrctafla1 <- renderGvis({
+    output$UpperTable1 <- renderGvis({
         if(!is.null(model1())){
-            upperrctafla1=as.data.frame(model1()$upperrctafla)
-            gvisTable(upperrctafla1,options=list(
+            UpperTable1=as.data.frame(model1()$UpperTable)
+            gvisTable(UpperTable1,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
@@ -343,9 +350,9 @@ shinyServer(function(input, output) {
             plotratingcurve2()$smoothbeta
     },height=400,width=600)
     
-    output$tafla2 <- renderGvis({
+    output$TableOfData2 <- renderGvis({
         if(!is.null(model2())){
-            table=as.data.frame(model2()$tafla)
+            table=as.data.frame(model2()$TableOfData)
             gvisTable(table,options=list(
                 page='enable',
                 pageSize=30,
@@ -355,10 +362,10 @@ shinyServer(function(input, output) {
         
         
     })
-    output$fitrctafla2 <- renderGvis({
+    output$FitTable2 <- renderGvis({
         if(!is.null(model2())){
-            fitrctafla2=as.data.frame(model2()$fitrctafla)
-            gvisTable(fitrctafla2,options=list(
+            FitTable2=as.data.frame(model2()$FitTable)
+            gvisTable(FitTable2,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
@@ -366,10 +373,10 @@ shinyServer(function(input, output) {
         
         } 
     })
-    output$lowerrctafla2 <- renderGvis({
+    output$LowerTable2 <- renderGvis({
         if(!is.null(model2())){
-            lowerrctafla2=as.data.frame(model2()$lowerrctafla)
-            gvisTable(lowerrctafla2,options=list(
+            LowerTable2=as.data.frame(model2()$LowerTable)
+            gvisTable(LowerTable2,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
@@ -377,10 +384,10 @@ shinyServer(function(input, output) {
             
         } 
     })
-    output$upperrctafla2 <- renderGvis({
+    output$UpperTable2 <- renderGvis({
         if(!is.null(model2())){
-            upperrctafla2=as.data.frame(model2()$upperrctafla)
-            gvisTable(upperrctafla2,options=list(
+            UpperTable2=as.data.frame(model2()$UpperTable)
+            gvisTable(UpperTable2,options=list(
                 page='enable',
                 pageSize=30,
                 width=550
@@ -419,8 +426,8 @@ shinyServer(function(input, output) {
     
     observeEvent(input$plot1_click,{
         if("raun"%in% input$checkbox){
-            qvdata=as.data.frame(data()$qvdata_before)
-            res <- nearPoints(qvdata, input$plot1_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
+            observedData=as.data.frame(data()$observedData_before)
+            res <- nearPoints(observedData, input$plot1_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
             if(any(res$selected_) & input$clickopts=='exclude'){
                 vals$keeprows=xor(vals$keeprows,res$selected_)
             }else if(input$clickopts=='force'){
@@ -435,8 +442,8 @@ shinyServer(function(input, output) {
     })
     observeEvent(input$plot5_click,{
         if("raun"%in% input$checkbox){
-            qvdata=data()$qvdata_before
-            res <- nearPoints(qvdata, input$plot5_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
+            observedData=data()$observedData_before
+            res <- nearPoints(observedData, input$plot5_click,xvar = "Q", yvar = "W", allRows = TRUE,threshold=5)
             if(any(res$selected_) & input$clickopts=='exclude'){
                 vals$keeprows=xor(vals$keeprows,res$selected_)
             }else if(input$clickopts=='force'){
@@ -477,7 +484,7 @@ shinyServer(function(input, output) {
 #         counter$i=counter$i-1
 #     })
     observeEvent(input$reset,{
-        n=nrow(data()$qvdata_before)
+        n=nrow(data()$observedData_before)
         vals$keeprows=rep(TRUE,n)
         dummy$W=NULL
         dummy$Q=NULL
@@ -489,7 +496,7 @@ shinyServer(function(input, output) {
         filename= function(){
             name=input$name
             if(nchar(name)==0){
-                name="River1"
+                name=gsub("\\.[^.]*$","",input$file$name)
             }
             paste(name,'xlsx',sep=".")
         },
@@ -498,46 +505,29 @@ shinyServer(function(input, output) {
             saveWorkbook(wb,file)
             tablelist=list()
             if(!is.null(model1())){
-                tablelist$data1=model1()$tafla
-                tablelist$fitfullrc1=model1()$fitrctafla
-                tablelist$lowerfullrc1=model1()$lowerrctafla
-                tablelist$upperfullrc1=model1()$upperrctafla
-                tablelist$plotfullrc1=model1()$plottafla
+                tablelist$TableOfData1=model2()$TableOfData
+                tablelist$FitTable1=model1()$FitTable
+                tablelist$LowerTable1=model1()$LowerTable
+                tablelist$UpperTable1=model1()$UpperTable
+                tablelist$plotTable1=model1()$plotTable
             }
             if(!is.null(model2())){
-                tablelist$data2=model2()$tafla
-                tablelist$fitfullrc2=model2()$fitrctafla
-                tablelist$lowerfullrc2=model2()$lowerrctafla
-                tablelist$upperfullrc2=model2()$upperrctafla
-                tablelist$plotfullrc2=model2()$plottafla
+                tablelist$TableOfData2=model2()$TableOfData
+                tablelist$FitTable2=model2()$FitTable
+                tablelist$LowerTable2=model2()$LowerTable
+                tablelist$UpperTable2=model2()$UpperTable
+                tablelist$plotTable2=model2()$plotTable
             }
             lapply(names(tablelist),function(x) write.xlsx(tablelist[[x]],file,sheetName=x,append=TRUE,row.names=FALSE))
         }
     )
     
-    observeEvent(input$downloadword, {
-        names1=c('image1_model1','image2_model1','image3_model1','image4_model1')
-        names2=c('image1_model2','image2_model2','image3_model2','image4_model2','image5_model2')
-        if(length(plotratingcurve1())!=0){
-            for(i in 1:length(plotratingcurve1())){
-                
-                postscript(file=paste(names1[i],'eps',sep='.'),width = 10, height = 7.5)
-                print(plotratingcurve1()[[i]])
-                dev.off()
-            }
-        }
-        if(length(plotratingcurve2())!=0){
-            for(i in 1:length(plotratingcurve2())){
-                
-                pdf(paste(names2[i],'pdf',sep='.'))
-                print(plotratingcurve2()[[i]])
-                dev.off()
-            }
-        }
-    })
     output$downloadImages <- downloadHandler(
         filename = function() {
-            filename=gsub("\\.[^.]*$","",input$file$name)
+            filename=input$name
+            if(nchar(filename)==0){
+                filename=gsub("\\.[^.]*$","",input$file$name)
+            }
             paste(filename,'html', sep=".")
         },
         content <- function(file) {
@@ -556,7 +546,10 @@ shinyServer(function(input, output) {
     
     output$downloadReport <- downloadHandler(
             filename = function() {
+                filename=input$name
+                if(nchar(filename)==0){
                 filename=gsub("\\.[^.]*$","",input$file$name)
+                }
                 paste(filename,'pdf', sep=".")
             },
             content <- function(file) {
@@ -586,6 +579,7 @@ shinyServer(function(input, output) {
     
     outputOptions(output, "plots1", suspendWhenHidden = FALSE)
     outputOptions(output, "plots2", suspendWhenHidden = FALSE)
-    
+
 })
+
 

@@ -1,14 +1,11 @@
 
 # Instructions
 
-Instructions video coming soon!
+
+<a href="https://www.youtube.com/watch?v=NOyQywTcXaQ"
+target="_blank"><img src="www/instructions.png"/</a>
 
 
-
-
-
-
-This is a picture of the river Hvita in Iceland:
 
 
 ![alt text](www/hvita.jpg)
