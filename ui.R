@@ -16,7 +16,10 @@ dashboardPage(
             tabItem(tabName="instructions",
                     h1("Instructions"),
                     tags$a(href="https://www.youtube.com/watch?v=NOyQywTcXaQ",
-                      target="_blank",tags$img(src="instructions.png",height="356px",width="640px"))
+                      target="_blank",tags$img(src="instructions.png",height="356px",width="640px")),
+                    br(),
+                    br(),
+                    tags$img(src="hvita.jpg", alt="Mountain View",width="640px",height="356px")
                     ),
             tabItem(tabName="app",
                 fluidRow(
