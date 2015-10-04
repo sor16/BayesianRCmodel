@@ -1,32 +1,36 @@
 # Code
-An R package called RCmodels was made from this project. The package includes the following functions written to run the models:
+An R package called RCmodels was made for this project. The package includes the following functions written to run the models:
    
 * Both models   
-    + clean() - Cleans the file input data. When file is txt it cleans the data in accordance to the from the Icelandic Met office. If you have other types of data the clean function also cleans a custom xlsx file with columns Date, Time,Quality,W,Q in this order.
-    + priors() - Defines the prior parameters for a given country. If you want to add your country to use the model please contact us. Contact information: sor16@hi.is and aoj8@hi.is
+    + clean() - Cleans the file input data. It can take in the two file formats shown in the test files. The txt format is the exported txt from WISKI database that the Icelandic Met Office uses. The xslx format is for other users that have data on other formats. 
+    + priors() - Defines the prior parameters for a given country. If you want to add your country to the list that have specified prior parameters, please contact us.
 * Model 1   
-    + plotmodel1() - makes use of clean() and model1BH() to plot a rating curve calculated with model 1
-        + model1BH() - Makes use of Densevalm11() to determine the fit and confidence intervals of a rating curve
-            + Densevalm11() - Evaluates the log density p for given theta
+    + plotmodel1() - makes use of clean() and model1BH() to plot a rating curve calculated with the methods in model 1.
+    + model1BH() - Makes use of Densevalm11() to determine the fit and confidence intervals of a rating curve.
+            + Densevalm11() - Evaluates the log posterior density for a given parameter vector theta given the data.
     
 * Model 2   
-    + plotmodel2() - makes use of clean() and model2BH() to plot a rating curve calculated with model 2
-    + model2BH() - Makes use of Densevalm22() to determine the fit and confidence intervals of a rating curve. It uses predict_u() to calculate predictive values and predictive confidence intervals for the unobserved stages of a rating curve. 
-    + Densevalm22() - Evaluates the log density p for given theta
-    + Adist() - Extracts unique elements of water level measurements and creates a distance matrix from them
-    + B_splines - Test the B-splines in a rating curve
-    + W_unobserved() - Returns the stages needed to make an equally spaced grid  
-    + predict_u() - Calculates predictive values for unobserved stages
+    + plotmodel2() -  makes use of clean() and model2BH() to plot a rating curve calculated with the methods in model 2.
+    + model2BH() - Makes use of Densevalm22() along with the other listed functions to determine the fit and confidence intervals of a rating curve. 
+        + Densevalm22() - Evaluates the log posterior density for a given parameter vector theta given the data.
+        + Adist() - Extracts unique elements of water level measurements and creates a distance matrix from them.
+        + B_splines - Tests the B-splines in the data.
+        + W_unobserved() - Returns the stages needed to make an equally spaced grid of stages. 
+        + predict_u() - Calculates predictive values for unobserved stages.
 
-All of the functions written to run the models are available for everyone [here](https://github.com/sor16/RCmodels).      
-To download the package RCmodels, type the following in your R console:           
+The code behind the functions are available at
+<a href="https://github.com/sor16/RCmodels" target="_blank">https://github.com/sor16/RCmodels/</a>  
+
+If you have any questions or bug fixes, please contact the developers, at sor16@hi.is or aoj8@hi.is or send a pull request on the RCmodels repository on github. To download the package, type the following in your R console:           
 
 
 ```r
-    #if not yet installed
-    install.packages('devtools')
-
-    devtools::install_github('sor16/RCmodels'). 
+    #Check if devtools is already installed
+    if(!require("devtools")){
+        install.packages('devtools')
+    }
+    devtools::install_github('sor16/RCmodels')
+    library(RCmodels)
 ```
-          
-To learn about input arguments into the functions, type ? in front of the function name.
+Now you are ready to go and use the functions in the package. Check out the documentation for each function by typing ? in front of the function name.  
+  

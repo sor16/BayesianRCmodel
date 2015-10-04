@@ -14,8 +14,9 @@ dashboardPage(
        
         tabItems(
             tabItem(tabName="instructions",
-                    includeMarkdown("instructions.md")
-                    
+                    h1("Instructions"),
+                    tags$a(href="https://www.youtube.com/watch?v=NOyQywTcXaQ",
+                      target="_blank",tags$img(src="instructions.png",height="356px",width="640px"))
                     ),
             tabItem(tabName="app",
                 fluidRow(

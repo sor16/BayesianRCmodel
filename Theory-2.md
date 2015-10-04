@@ -8,10 +8,10 @@ MathJax.Hub.Config({
 </script>
 
 # Bayesian Generalized Rating Curves
-
 Birgir Hrafnkelsson$^{1}$,Solvi Rognvaldsson$^{1}$,Axel Orn Jansson$^{1}$ Helgi Sigurdarson$^{2}$ and Sigurdur M. Gardarsson$^{3}$   
 $^{1}$ Faculty of Physical Sciences, School of Engineering and Natural Sciences, The University of Iceland, Iceland $^{2}$ Faculty of Industrial Engineering, Mechanical Engineering and Computer Science, School of Engineering and Natural Sciences, The University of Iceland, Iceland   
 $^{3}$ Faculty of Environmental and Civil Engineering, School of Engineering and Natural Sciences, The University of Iceland, Iceland 
+
 
    
 A rating curve is a model that describes the relationship between water stage and discharge in a river. The rating curve is estimated from paired observations of stage and discharge. The rating curve is used to predict discharge given stage. This is the main practical usage of rating curves as stage is substantially easier to directly observe than discharge. Two types of rating curves are implemented here. The first type is the power-law model which is commonly assumed in hydraulic practice. It is given by
